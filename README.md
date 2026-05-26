@@ -42,3 +42,40 @@ Implement handling in the Mes Validation app (see `MesValidationRecordingReceive
 ## Logs
 
 Logcat filter: `HelperApplication`
+
+---
+
+## GitHub & distribution
+
+| Item | Value |
+|------|--------|
+| Repo | [rushabh023/call-os-helper](https://github.com/rushabh023/call-os-helper) |
+| Visibility | **Public** |
+| Clone | `git clone https://github.com/rushabh023/call-os-helper.git` |
+| Branch | `rushabh-call-os-helper` |
+
+**Branches**
+
+| Branch | Use |
+|--------|-----|
+| `main` | Default / stable |
+| `rushabh-call-os-helper` | Working branch |
+
+**Clone this branch**
+
+```bash
+git clone -b rushabh-call-os-helper https://github.com/rushabh023/call-os-helper.git
+```
+
+**Push your changes to this branch**
+
+```bash
+git checkout rushabh-call-os-helper
+git add .
+git commit -m "Your message"
+git push origin rushabh-call-os-helper
+```
+
+Anyone with the link can **view and clone** the code. Only you (and collaborators you add) can **push** to this repository.
+
+Full details: [GITHUB.md](GITHUB.md)

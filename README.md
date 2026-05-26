@@ -2,6 +2,9 @@
 
 Android helper app that works with **Mes Validation** (`com.mesvalidation`) for call recording setup—similar to the Cube ACR + Cube ACR Helper pattern.
 
+**GitHub:** https://github.com/rushabh023/call-os-helper  
+**How this repo is shared, branched, and cloned:** see [GITHUB.md](GITHUB.md)
+
 ## Features
 
 - Setup wizard: permissions, battery optimization, Accessibility **Mes Validation Connection**

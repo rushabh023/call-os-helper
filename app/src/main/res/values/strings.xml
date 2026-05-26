@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Mes Validation Helper</string>
+    <string name="app_name">Call OS Helper</string>
     <string name="app_connector_name">Mes Validation Connection</string>
     <string name="accessibility_service_description">Connects Helper Application to Mes Validation for call recording. Enable this in Accessibility. Do not enable the accessibility shortcut.</string>
 
@@ -23,7 +23,7 @@
 
     <string name="app_connector_intro">Helper Application needs Mes Validation Connection enabled in Accessibility to detect calls and send them to the Mes Validation app for recording.</string>
     <string name="app_connector_warning">ATTENTION! Do NOT enable the shortcut option of the service. Unintentional touches on it can cause instability of the app.</string>
-    <string name="app_connector_guide">Go to Accessibility &gt; Installed apps &gt; tap Mes Validation Helper &gt; turn ON Mes Validation Connection</string>
+    <string name="app_connector_guide">Go to Accessibility &gt; Installed apps &gt; tap Call OS Helper &gt; turn ON Mes Validation Connection</string>
     <string name="enable_app_connector">ENABLE MES VALIDATION CONNECTION</string>
     <string name="allow_restricted_settings">ALLOW RESTRICTED SETTINGS (Android 13+)</string>
 

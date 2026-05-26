@@ -1,0 +1,30 @@
+*.iml
+.gradle/
+/build
+/app/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+.DS_Store
+
+# IDE
+.idea/
+*.ipr
+*.iws
+
+# Gradle cache
+.gradle/
+**/.gradle/
+
+# Android Studio
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+
+# Local / secrets
+*.keystore
+*.jks

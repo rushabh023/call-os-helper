@@ -1,0 +1,56 @@
+<resources>
+    <string name="app_name">Mes Validation Helper</string>
+    <string name="app_connector_name">Mes Validation Connection</string>
+    <string name="accessibility_service_description">Connects Helper Application to Mes Validation for call recording. Enable this in Accessibility. Do not enable the accessibility shortcut.</string>
+
+    <string name="permissions_title">Helper Application needs these permissions to be able do the following:</string>
+    <string name="permission_mic">Microphone</string>
+    <string name="permission_mic_desc">to allow the app to record calls</string>
+    <string name="permission_phone">Phone</string>
+    <string name="permission_phone_desc">to detect incoming and outgoing calls</string>
+    <string name="permission_call_log">Call Log</string>
+    <string name="permission_call_log_desc">to detect your caller number</string>
+    <string name="permission_bluetooth">Bluetooth</string>
+    <string name="permission_bluetooth_desc">to detect whether a Bluetooth headset is active during a recording</string>
+    <string name="grant_permissions">GRANT PERMISSIONS</string>
+
+    <string name="battery_title">Disable power optimization for Helper</string>
+    <string name="battery_message">Helper Application battery usage should not be optimized by your phone\'s built-in or third-party optimizer. Otherwise, you might not get the option to record calls.</string>
+    <string name="battery_allow_background">Allow background activity</string>
+    <string name="battery_not_optimized">Optimize battery usage</string>
+    <string name="battery_not_optimized_value">Not optimized</string>
+    <string name="ok">OK</string>
+
+    <string name="app_connector_intro">Helper Application needs Mes Validation Connection enabled in Accessibility to detect calls and send them to the Mes Validation app for recording.</string>
+    <string name="app_connector_warning">ATTENTION! Do NOT enable the shortcut option of the service. Unintentional touches on it can cause instability of the app.</string>
+    <string name="app_connector_guide">Go to Accessibility &gt; Installed apps &gt; tap Mes Validation Helper &gt; turn ON Mes Validation Connection</string>
+    <string name="enable_app_connector">ENABLE MES VALIDATION CONNECTION</string>
+    <string name="allow_restricted_settings">ALLOW RESTRICTED SETTINGS (Android 13+)</string>
+
+    <string name="dashboard_title">Helper Application</string>
+    <string name="main_app_section">Mes Validation</string>
+    <string name="main_app_found">Mes Validation app (version %1$s) found.</string>
+    <string name="main_app_not_found">Mes Validation (com.mesvalidation) is not installed. Install it to record calls.</string>
+    <string name="open">OPEN</string>
+    <string name="recordings_folder">Recordings folder</string>
+    <string name="recordings_folder_path">Internal storage → Documents → MesValidationCallRecorder</string>
+    <string name="recordings_folder_missing">Folder not created yet. Tap “Create folder” or complete setup again.</string>
+    <string name="create_folder">CREATE FOLDER</string>
+    <string name="unsent_records">Unsent records</string>
+    <string name="unsent_ok">There are no unsent records. Everything is OK.</string>
+    <string name="unsent_count">There are %1$d unsent records.</string>
+    <string name="go_to_app_connector">GO TO MES VALIDATION CONNECTION</string>
+    <string name="go_to_app_settings">GO TO APP SETTINGS</string>
+    <string name="support">Support</string>
+    <string name="contact_us">CONTACT US</string>
+    <string name="legal">Legal</string>
+    <string name="legal_notice_btn">LEGAL NOTICE</string>
+    <string name="privacy_btn">PRIVACY</string>
+    <string name="build_version">Build %1$s</string>
+
+    <string name="setup_complete_title">The Helper Application setup is complete.</string>
+    <string name="cancel">CANCEL</string>
+    <string name="open_main_app">OPEN MES VALIDATION</string>
+
+    <string name="legal_notice_full">The legislation regarding phone call recording varies in different countries and states. Please make sure that you\'re not breaking the legislation of your or your callee/caller country. Always notify the callee/caller that your conversation will be recorded and ask for their permission.</string>
+</resources>

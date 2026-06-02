@@ -30,7 +30,8 @@ private enum class SetupStep {
 
 @Composable
 fun HelperAppRoot(
-    onStartMonitoring: () -> Unit
+    onStartMonitoring: () -> Unit,
+    onRequestDualCapture: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -53,14 +54,28 @@ fun HelperAppRoot(
     var connectorCheckTick by remember { mutableStateOf(0) }
 
     LaunchedEffect(step, connectorCheckTick) {
-        if (step == SetupStep.Dashboard) {
-            val folderOk = RecordingStorage.ensureFolderExists(context)
-            val connectorOn = SystemSettingsHelper.isAppConnectorEnabled(context)
-            AppLog.d("Dashboard: folderOk=$folderOk, appConnector=$connectorOn")
-            if (connectorOn) {
-                RecordingPreferences.setAppConnectorEnabled(context, true)
-                onStartMonitoring()
+        val connectorOn = SystemSettingsHelper.isAppConnectorEnabled(context)
+        when (step) {
+            SetupStep.AppConnector -> {
+                if (connectorOn) {
+                    RecordingPreferences.setAppConnectorEnabled(context, true)
+                    RecordingStorage.ensureFolderExists(context)
+                    AppLog.i("App Connector detected on resume — completing setup")
+                    SetupPreferences.setSetupComplete(context, true)
+                    SetupPreferences.setShowCompleteDialog(context, true)
+                    showCompleteDialog = true
+                    step = SetupStep.Dashboard
+                }
             }
+            SetupStep.Dashboard -> {
+                val folderOk = RecordingStorage.ensureFolderExists(context)
+                AppLog.d("Dashboard: folderOk=$folderOk, appConnector=$connectorOn")
+                if (connectorOn) {
+                    RecordingPreferences.setAppConnectorEnabled(context, true)
+                    onStartMonitoring()
+                }
+            }
+            else -> Unit
         }
     }
 
@@ -111,7 +126,8 @@ fun HelperAppRoot(
             onDismissSetupDialog = {
                 showCompleteDialog = false
                 SetupPreferences.setShowCompleteDialog(context, false)
-            }
+            },
+            onRequestDualCapture = onRequestDualCapture
         )
     }
 }

@@ -28,9 +28,9 @@ object RecordingStorage {
      * Creates Documents/MesValidationCallRecorder (like Cube Documents/CubeCallRecorder).
      */
     fun ensureFolderExists(context: Context): Boolean {
-        AppLog.i("ensureFolderExists start → $RELATIVE_FOLDER")
+        AppLog.Storage.i("ensureFolderExists -> $RELATIVE_FOLDER")
         if (directFolderReady()) {
-            AppLog.i("Folder ready via direct path: ${getPublicFolderFile().absolutePath}")
+            AppLog.Storage.i("Folder ready: ${getPublicFolderFile().absolutePath}")
             RecordingPreferences.setFolderReady(context, true)
             return true
         }
@@ -41,11 +41,11 @@ object RecordingStorage {
         }
         if (viaMediaStore || directFolderReady()) {
             RecordingPreferences.setFolderReady(context, true)
-            AppLog.i("ensureFolderExists success")
+            AppLog.Storage.i("ensureFolderExists success — visible in Files app under Documents/$FOLDER_NAME")
             return true
         }
         RecordingPreferences.setFolderReady(context, false)
-        AppLog.e("ensureFolderExists FAILED — check storage permission / Android version")
+        AppLog.Storage.e("ensureFolderExists FAILED — check storage permission / Android version")
         return false
     }
 
@@ -62,7 +62,7 @@ object RecordingStorage {
         return try {
             val dir = getPublicFolderFile()
             if (!dir.exists() && !dir.mkdirs()) {
-                AppLog.w("mkdirs failed: ${dir.absolutePath}")
+                AppLog.Storage.w("mkdirs failed: ${dir.absolutePath}")
                 return false
             }
             val marker = File(dir, FOLDER_MARKER_FILE)
@@ -72,10 +72,10 @@ object RecordingStorage {
                         "Helper app and Mes Validation (com.mesvalidation) use this location.\n"
                 )
             }
-            AppLog.i("Direct folder: ${dir.absolutePath}, marker=${marker.length()} bytes")
+            AppLog.Storage.i("Direct folder created: ${dir.absolutePath}")
             true
         } catch (e: Exception) {
-            AppLog.e("ensureDirectDocumentsFolder failed", e)
+            AppLog.Storage.e("ensureDirectDocumentsFolder failed", e)
             false
         }
     }
@@ -83,7 +83,7 @@ object RecordingStorage {
     private fun ensureFolderViaMediaStore(context: Context): Boolean {
         if (ensureDirectDocumentsFolder()) return true
         if (folderMarkerExistsInMediaStore(context)) {
-            AppLog.d("MediaStore marker already exists")
+            AppLog.Storage.d("MediaStore marker already exists")
             return true
         }
         val resolver = context.contentResolver
@@ -98,7 +98,7 @@ object RecordingStorage {
         }
         val uri = resolver.insert(collection, values)
         if (uri == null) {
-            AppLog.e("MediaStore insert returned null for folder marker")
+            AppLog.Storage.e("MediaStore insert returned null for folder marker")
             return ensureDirectDocumentsFolder()
         }
         return try {
@@ -107,7 +107,7 @@ object RecordingStorage {
                     "Call recordings folder for Mes Validation.\n".toByteArray()
                 )
             } ?: run {
-                AppLog.e("openOutputStream null for folder marker")
+                AppLog.Storage.e("openOutputStream null for folder marker")
                 return ensureDirectDocumentsFolder()
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -116,10 +116,10 @@ object RecordingStorage {
                 }
                 resolver.update(uri, done, null, null)
             }
-            AppLog.i("MediaStore folder marker created: $uri")
+            AppLog.Storage.i("MediaStore folder marker created: $uri")
             ensureDirectDocumentsFolder() || folderMarkerExistsInMediaStore(context)
         } catch (e: Exception) {
-            AppLog.e("ensureFolderViaMediaStore failed", e)
+            AppLog.Storage.e("ensureFolderViaMediaStore failed", e)
             resolver.delete(uri, null, null)
             ensureDirectDocumentsFolder()
         }
@@ -138,56 +138,106 @@ object RecordingStorage {
     }
 
     fun saveRecording(context: Context, tempFile: File, fileName: String): Uri? {
+        AppLog.Storage.detail(
+            "save_start",
+            "fileName" to fileName,
+            "tempBytes" to tempFile.length(),
+            "tempPath" to tempFile.absolutePath,
+            "targetFolder" to RELATIVE_FOLDER,
+            "sdk" to Build.VERSION.SDK_INT,
+            "folderReadyOnDisk" to directFolderReady()
+        )
         if (!tempFile.exists() || tempFile.length() == 0L) {
-            AppLog.w("saveRecording skipped: empty or missing temp file ($fileName)")
+            AppLog.Storage.w("save skipped: empty or missing temp ($fileName)")
             tempFile.delete()
             return null
         }
         ensureFolderExists(context)
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            saveViaMediaStore(context, tempFile, fileName) ?: saveViaDirectFile(tempFile, fileName)
+            if (directFolderReady()) {
+                AppLog.Storage.d("Save strategy: direct file first, MediaStore.Files fallback")
+                saveViaDirectFile(tempFile, fileName, "primary")
+                    ?: saveViaMediaStoreDocuments(context, tempFile, fileName, "fallback")
+            } else {
+                AppLog.Storage.d("Save strategy: MediaStore.Files first, direct file fallback")
+                saveViaMediaStoreDocuments(context, tempFile, fileName, "primary")
+                    ?: saveViaDirectFile(tempFile, fileName, "fallback")
+            }
         } else {
+            AppLog.Storage.d("Save strategy: legacy direct file (API < 29)")
             saveViaLegacyPath(tempFile, fileName)
         }
     }
 
-    private fun saveViaDirectFile(tempFile: File, fileName: String): Uri? {
+    private fun saveViaDirectFile(tempFile: File, fileName: String, role: String = "direct"): Uri? {
         return try {
             val dir = getPublicFolderFile()
             if (!dir.exists()) dir.mkdirs()
             val dest = File(dir, fileName)
             tempFile.copyTo(dest, overwrite = true)
             tempFile.delete()
-            AppLog.i("Saved via direct file: ${dest.absolutePath}")
+            AppLog.Storage.detail(
+                "save_direct_ok",
+                "role" to role,
+                "fileName" to dest.name,
+                "bytes" to dest.length(),
+                "absolutePath" to dest.absolutePath,
+                "fileManager" to "Internal storage/Documents/$FOLDER_NAME/${dest.name}"
+            )
             Uri.fromFile(dest)
         } catch (e: Exception) {
-            AppLog.e("saveViaDirectFile failed", e)
+            AppLog.Storage.e("saveViaDirectFile failed (role=$role)", e)
             null
         }
     }
 
-    private fun saveViaMediaStore(context: Context, tempFile: File, fileName: String): Uri? {
+    /**
+     * Saves into Documents/MesValidationCallRecorder via MediaStore.Files (not Audio —
+     * Audio only allows Music/Recordings/etc. and rejects Documents/).
+     */
+    private fun saveViaMediaStoreDocuments(
+        context: Context,
+        tempFile: File,
+        fileName: String,
+        role: String = "mediastore"
+    ): Uri? {
         val resolver = context.contentResolver
-        val values = ContentValues().apply {
-            put(MediaStore.Audio.Media.DISPLAY_NAME, fileName)
-            put(MediaStore.Audio.Media.MIME_TYPE, "audio/mp4")
-            put(MediaStore.Audio.Media.RELATIVE_PATH, "$RELATIVE_FOLDER/")
-            put(MediaStore.Audio.Media.IS_PENDING, 1)
-        }
-        val uri = resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values) ?: return null
+        val collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
         return try {
+            val values = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                put(MediaStore.MediaColumns.MIME_TYPE, mimeTypeForFile(fileName))
+                put(MediaStore.MediaColumns.RELATIVE_PATH, "$RELATIVE_FOLDER/")
+                put(MediaStore.MediaColumns.IS_PENDING, 1)
+            }
+            val uri = resolver.insert(collection, values)
+            if (uri == null) {
+                AppLog.Storage.w("MediaStore.Files insert null (role=$role) fileName=$fileName")
+                return null
+            }
             resolver.openOutputStream(uri)?.use { out ->
                 FileInputStream(tempFile).use { it.copyTo(out) }
+            } ?: run {
+                AppLog.Storage.e("openOutputStream null for $fileName")
+                resolver.delete(uri, null, null)
+                return null
             }
             val done = ContentValues().apply {
-                put(MediaStore.Audio.Media.IS_PENDING, 0)
+                put(MediaStore.MediaColumns.IS_PENDING, 0)
             }
             resolver.update(uri, done, null, null)
             tempFile.delete()
+            AppLog.Storage.detail(
+                "save_mediastore_ok",
+                "role" to role,
+                "fileName" to fileName,
+                "uri" to uri.toString(),
+                "mime" to mimeTypeForFile(fileName),
+                "fileManager" to "Internal storage/Documents/$FOLDER_NAME/$fileName"
+            )
             uri
         } catch (e: Exception) {
-            AppLog.e("saveViaMediaStore failed for $fileName", e)
-            resolver.delete(uri, null, null)
+            AppLog.Storage.e("saveViaMediaStoreDocuments failed (role=$role) fileName=$fileName", e)
             null
         }
     }
@@ -203,6 +253,14 @@ object RecordingStorage {
     }
 
     fun buildFileName(direction: CallDirection, phoneNumber: String?): String {
+        return buildFileName(direction, phoneNumber, "amr")
+    }
+
+    fun buildFileName(direction: CallDirection, phoneNumber: String?, extension: String): String {
+        val ext = extension.lowercase(java.util.Locale.US)
+        if (ext == "amr") {
+            return buildCubeStyleFileName(phoneNumber)
+        }
         val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US)
             .format(java.util.Date())
         val dir = when (direction) {
@@ -210,7 +268,24 @@ object RecordingStorage {
             CallDirection.OUTGOING -> "OUT"
         }
         val number = phoneNumber?.filter { it.isDigit() || it == '+' }?.take(20) ?: "unknown"
-        return "${timestamp}_${dir}_${number}.m4a"
+        return "${timestamp}_${dir}_${number}.$ext"
+    }
+
+    /** Cube ACR Helper: phone_20260527-132812__918347112610.amr */
+    fun buildCubeStyleFileName(phoneNumber: String?): String {
+        val timestamp = java.text.SimpleDateFormat("yyyyMMdd-HHmmss", java.util.Locale.US)
+            .format(java.util.Date())
+        val number = phoneNumber?.filter { it.isDigit() }?.take(20) ?: "unknown"
+        return "phone_${timestamp}__${number}.amr"
+    }
+
+    private fun mimeTypeForFile(fileName: String): String {
+        return when (fileName.substringAfterLast('.', "").lowercase(java.util.Locale.US)) {
+            "wav" -> "audio/wav"
+            "amr" -> "audio/amr"
+            "m4a", "mp4" -> "audio/mp4"
+            else -> "audio/*"
+        }
     }
 }
 

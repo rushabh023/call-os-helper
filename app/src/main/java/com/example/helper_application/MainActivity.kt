@@ -1,38 +1,62 @@
 package com.example.helper_application
 
+import android.app.Activity
+import android.app.AlertDialog
+import android.media.projection.MediaProjectionConfig
+import android.media.projection.MediaProjectionManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import com.example.helper_application.recording.CallMonitorService
+import com.example.helper_application.recording.MediaProjectionHolder
+import com.example.helper_application.shizuku.ShizukuManager
 import com.example.helper_application.recording.RecordingPreferences
 import com.example.helper_application.recording.RecordingStorage
-import com.example.helper_application.setup.PermissionHelper
 import com.example.helper_application.setup.SetupPreferences
-import com.example.helper_application.setup.SystemSettingsHelper
-import com.example.helper_application.recording.CallMonitorService
-import com.example.helper_application.telephony.CallStateMonitor
+import com.example.helper_application.telephony.CallMonitoringCoordinator
 import com.example.helper_application.ui.HelperAppRoot
 import com.example.helper_application.ui.theme.Helper_applicationTheme
 import com.example.helper_application.util.AppLog
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var callStateMonitor: CallStateMonitor
+    private val mediaProjectionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            CallMonitorService.grantMediaProjection(
+                this,
+                result.resultCode,
+                result.data!!
+            )
+        } else {
+            AppLog.w("Two-way recording: MediaProjection denied resultCode=${result.resultCode}")
+            RecordingPreferences.setDualCaptureEnabled(this, false)
+            MediaProjectionHolder.clear()
+            RecordingPreferences.setLastError(
+                this,
+                "Two-way not enabled: tap Enable, then Share screen / Start on the system dialog."
+            )
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        AppLog.i("MainActivity onCreate")
+        AppLog.Setup.i("MainActivity onCreate")
         enableEdgeToEdge()
-        callStateMonitor = CallStateMonitor(applicationContext)
 
         setContent {
             Helper_applicationTheme(dynamicColor = false) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     HelperAppRoot(
-                        onStartMonitoring = { startBackgroundRecordingIfReady() }
+                        onStartMonitoring = { startBackgroundRecordingIfReady() },
+                        onRequestDualCapture = { requestDualCaptureProjection() }
                     )
                 }
             }
@@ -41,7 +65,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        AppLog.d("MainActivity onResume")
+        AppLog.Setup.d("MainActivity onResume")
+        ShizukuManager.resumeSetup(this)
         if (SetupPreferences.isSetupComplete(this)) {
             val folderOk = RecordingStorage.ensureFolderExists(this)
             AppLog.i("ensureFolderExists on resume: success=$folderOk")
@@ -50,35 +75,43 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        AppLog.d("MainActivity onDestroy")
-        if (::callStateMonitor.isInitialized) {
-            callStateMonitor.stop()
-        }
-        // Keep CallMonitorService running after leaving app so calls still record.
+        AppLog.Setup.d(
+            "MainActivity onDestroy — telephonyStillRunning=${CallMonitoringCoordinator.isRunning()}"
+        )
         super.onDestroy()
     }
 
     private fun startBackgroundRecordingIfReady() {
-        if (!SetupPreferences.isSetupComplete(this)) {
-            AppLog.d("Call monitoring skipped: setup not complete")
-            return
-        }
-        if (!PermissionHelper.hasAllPermissions(this)) {
-            AppLog.w("Call monitoring skipped: missing permissions")
-            return
-        }
-        if (!SystemSettingsHelper.isAppConnectorEnabled(this)) {
-            AppLog.w("Call monitoring skipped: App Connector disabled")
-            return
-        }
-        AppLog.i("Starting call monitor + telephony listener")
-        RecordingPreferences.setAutoRecordEnabled(this, true)
-        CallMonitorService.startMonitoring(this)
-        callStateMonitor.start()
+        CallMonitoringCoordinator.startIfReady(this)
     }
 
     override fun onPause() {
         super.onPause()
-        AppLog.d("MainActivity onPause — monitor keeps running in background")
+        AppLog.Setup.d("MainActivity onPause — monitor keeps running in background")
+    }
+
+    fun requestDualCaptureProjection() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            AppLog.w("Two-way capture requires Android 10+")
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.two_way_dialog_title)
+            .setMessage(R.string.two_way_dialog_message)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.two_way_dialog_continue) { _, _ ->
+                launchMediaProjectionConsent()
+            }
+            .show()
+    }
+
+    private fun launchMediaProjectionConsent() {
+        val mgr = getSystemService(MediaProjectionManager::class.java)
+        val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            mgr.createScreenCaptureIntent(MediaProjectionConfig.createConfigForDefaultDisplay())
+        } else {
+            mgr.createScreenCaptureIntent()
+        }
+        mediaProjectionLauncher.launch(intent)
     }
 }

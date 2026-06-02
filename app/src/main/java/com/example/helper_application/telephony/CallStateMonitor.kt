@@ -11,6 +11,7 @@ import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
 import androidx.core.content.ContextCompat
 import com.example.helper_application.bridge.MesValidationConnectionBridge
+import com.example.helper_application.recording.CallAudioBoost
 import com.example.helper_application.recording.CallDirection
 import com.example.helper_application.recording.CallMonitorService
 import com.example.helper_application.recording.RecordingPreferences
@@ -46,14 +47,14 @@ class CallStateMonitor(private val context: Context) {
 
     fun start() {
         if (isMonitoring) {
-            AppLog.d("CallStateMonitor already running")
+            AppLog.Telephony.d("CallStateMonitor already running")
             return
         }
         if (!hasPhonePermission()) {
-            AppLog.w("CallStateMonitor start failed: READ_PHONE_STATE not granted")
+            AppLog.Telephony.w("CallStateMonitor start failed: READ_PHONE_STATE not granted")
             return
         }
-        AppLog.i("CallStateMonitor started")
+        AppLog.Telephony.i("CallStateMonitor started (TelephonyManager listener active)")
         isMonitoring = true
         lastState = TelephonyManager.CALL_STATE_IDLE
         ringDetected = false
@@ -62,7 +63,7 @@ class CallStateMonitor(private val context: Context) {
             try {
                 telephonyManager.registerTelephonyCallback(context.mainExecutor, telephonyCallback)
             } catch (e: Exception) {
-                AppLog.e("registerTelephonyCallback failed", e)
+                AppLog.Telephony.e("registerTelephonyCallback failed, fallback to PhoneStateListener", e)
                 @Suppress("DEPRECATION")
                 telephonyManager.listen(legacyListener, PhoneStateListener.LISTEN_CALL_STATE)
             }
@@ -74,7 +75,7 @@ class CallStateMonitor(private val context: Context) {
 
     fun stop() {
         if (!isMonitoring) return
-        AppLog.i("CallStateMonitor stopped")
+        AppLog.Telephony.i("CallStateMonitor stopped")
         isMonitoring = false
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && telephonyCallback != null) {
             telephonyManager.unregisterTelephonyCallback(telephonyCallback)
@@ -89,21 +90,34 @@ class CallStateMonitor(private val context: Context) {
             try {
                 handleStateChangeOnMain(state, phoneNumber)
             } catch (e: Exception) {
-                AppLog.e("handleStateChange crashed", e)
+                AppLog.Telephony.e("handleStateChange crashed", e)
             }
         }
     }
 
     private fun handleStateChangeOnMain(state: Int, phoneNumber: String?) {
-        if (!RecordingPreferences.isAutoRecordEnabled(context)) return
+        if (!RecordingPreferences.isAutoRecordEnabled(context)) {
+            AppLog.Telephony.d("Call state ignored (auto-record off): ${callStateName(state)}")
+            return
+        }
 
         val stateName = callStateName(state)
-        AppLog.d("Call state: $stateName (last=${callStateName(lastState)}, number=$phoneNumber)")
+        AppLog.Telephony.detail(
+            "state_change",
+            "state" to stateName,
+            "previous" to callStateName(lastState),
+            "number" to (phoneNumber ?: "null"),
+            "ringDetected" to ringDetected,
+            "mesValidationInstalled" to MesValidationConnectionBridge.isMesValidationInstalled(context)
+        )
 
         when (state) {
             TelephonyManager.CALL_STATE_RINGING -> {
                 ringDetected = true
-                AppLog.i("Incoming call ringing")
+                AppLog.Telephony.i("Incoming call RINGING")
+                if (RecordingPreferences.isAcrStyleRecording(context)) {
+                    CallAudioBoost.applyForCall(context)
+                }
             }
             TelephonyManager.CALL_STATE_OFFHOOK -> {
                 if (lastState != TelephonyManager.CALL_STATE_OFFHOOK) {
@@ -112,22 +126,23 @@ class CallStateMonitor(private val context: Context) {
                     } else {
                         CallDirection.OUTGOING
                     }
-                    AppLog.i("Call active — starting recording (${direction.name})")
+                    AppLog.Telephony.i("Call answered/active OFFHOOK -> auto-start recording (${direction.name})")
+                    if (RecordingPreferences.isAcrStyleRecording(context) && !ringDetected) {
+                        CallAudioBoost.applyForCall(context)
+                    }
+                    AppLog.Telephony.i("Starting local recording in Helper (Cube/APH always records here)")
+                    CallMonitorService.beginCall(context, direction, phoneNumber)
                     if (MesValidationConnectionBridge.isMesValidationInstalled(context)) {
                         MesValidationConnectionBridge.startRecording(context, direction, phoneNumber)
-                    } else {
-                        AppLog.w("Mes Validation not installed — recording locally in Helper")
-                        CallMonitorService.beginCall(context, direction, phoneNumber)
                     }
                 }
             }
             TelephonyManager.CALL_STATE_IDLE -> {
                 if (lastState == TelephonyManager.CALL_STATE_OFFHOOK) {
-                    AppLog.i("Call ended — stopping recording")
+                    AppLog.Telephony.i("Call ended IDLE -> auto-stop recording and save")
+                    CallMonitorService.endCall(context)
                     if (MesValidationConnectionBridge.isMesValidationInstalled(context)) {
                         MesValidationConnectionBridge.stopRecording(context)
-                    } else {
-                        CallMonitorService.endCall(context)
                     }
                 }
                 ringDetected = false

@@ -1,6 +1,7 @@
 package com.example.helper_application.setup
 
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -45,14 +46,39 @@ object SystemSettingsHelper {
     }
 
     fun isAppConnectorEnabled(context: Context): Boolean {
+        val component = ComponentName(context, AppConnectorService::class.java)
+        val flat = component.flattenToString()
+        val shortFlat = "${context.packageName}/${AppConnectorService::class.java.simpleName}"
+
+        val fromSecure = Settings.Secure.getString(
+            context.contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        ).orEmpty()
+        if (fromSecure.isNotEmpty()) {
+            val secureHit = fromSecure.split(':').any { entry ->
+                entry.equals(flat, ignoreCase = true) ||
+                    entry.equals(shortFlat, ignoreCase = true) ||
+                    (entry.contains(context.packageName, ignoreCase = true) &&
+                        entry.contains("AppConnectorService", ignoreCase = true))
+            }
+            if (secureHit) {
+                AppLog.d("isAppConnectorEnabled=true (Settings.Secure)")
+                return true
+            }
+        }
+
         val manager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
         val enabled = manager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
-        val serviceName = AppConnectorService::class.java.name
+        val fullName = AppConnectorService::class.java.name
+        val relativeName = ".accessibility.AppConnectorService"
         val on = enabled.any { service ->
-            service.resolveInfo.serviceInfo.packageName == context.packageName &&
-                service.resolveInfo.serviceInfo.name == serviceName
+            val si = service.resolveInfo.serviceInfo
+            si.packageName == context.packageName &&
+                (si.name == fullName ||
+                    si.name == relativeName ||
+                    si.name.endsWith("AppConnectorService"))
         }
-        AppLog.d("isAppConnectorEnabled=$on")
+        AppLog.d("isAppConnectorEnabled=$on (AccessibilityManager, enabledCount=${enabled.size})")
         return on
     }
 

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -23,40 +23,43 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.helper_application.R
 import com.example.helper_application.setup.SystemSettingsHelper
-import com.example.helper_application.util.AppLog
 import com.example.helper_application.ui.components.CubeGradientBackground
 import com.example.helper_application.ui.components.CubePrimaryButton
+import com.example.helper_application.ui.components.SetupResponsive
+import com.example.helper_application.ui.components.SetupScreenLogo
+import com.example.helper_application.ui.components.SetupScrollableColumn
 import com.example.helper_application.ui.theme.CubePinkAccent
 import com.example.helper_application.ui.theme.CubeTextOnGradient
+import com.example.helper_application.util.AppLog
 
 @Composable
 fun BatteryOptimizationScreen(onContinue: () -> Unit) {
     val context = LocalContext.current
+    val config = LocalConfiguration.current
+    val gap = SetupResponsive.sectionGap(config.screenHeightDp)
 
     CubeGradientBackground {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-                Text(
-                    text = stringResource(R.string.battery_title),
-                    color = CubeTextOnGradient,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = stringResource(R.string.battery_message),
-                    color = CubeTextOnGradient,
-                    fontSize = 16.sp,
-                    lineHeight = 24.sp
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-                BatterySettingsCard()
-            }
+        SetupScrollableColumn {
+            SetupScreenLogo()
+            Spacer(modifier = Modifier.height(gap))
+            Text(
+                text = stringResource(R.string.battery_title),
+                color = CubeTextOnGradient,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(gap))
+            Text(
+                text = stringResource(R.string.battery_message),
+                color = CubeTextOnGradient,
+                fontSize = 16.sp,
+                lineHeight = 24.sp,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(if (config.screenHeightDp < 600) 20.dp else 32.dp))
+            BatterySettingsCard()
+            Spacer(modifier = Modifier.height(gap + 12.dp))
             CubePrimaryButton(
                 text = stringResource(R.string.ok),
                 onClick = {
@@ -65,6 +68,7 @@ fun BatteryOptimizationScreen(onContinue: () -> Unit) {
                     onContinue()
                 }
             )
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

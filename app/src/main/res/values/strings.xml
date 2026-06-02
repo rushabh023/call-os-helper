@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Call OS Helper</string>
+    <string name="app_logo_content_description">Call OS Helper logo</string>
     <string name="app_connector_name">Mes Validation Connection</string>
     <string name="accessibility_service_description">Connects Helper Application to Mes Validation for call recording. Enable this in Accessibility. Do not enable the accessibility shortcut.</string>
 
@@ -23,15 +24,72 @@
 
     <string name="app_connector_intro">Helper Application needs Mes Validation Connection enabled in Accessibility to detect calls and send them to the Mes Validation app for recording.</string>
     <string name="app_connector_warning">ATTENTION! Do NOT enable the shortcut option of the service. Unintentional touches on it can cause instability of the app.</string>
-    <string name="app_connector_guide">Go to Accessibility &gt; Installed apps &gt; tap Call OS Helper &gt; turn ON Mes Validation Connection</string>
+    <string name="app_connector_guide">Go to Accessibility &gt; Installed / Downloaded apps &gt; Call OS Helper &gt; turn ON Mes Validation Connection (main switch, not the shortcut).</string>
     <string name="enable_app_connector">ENABLE MES VALIDATION CONNECTION</string>
     <string name="allow_restricted_settings">ALLOW RESTRICTED SETTINGS (Android 13+)</string>
+    <string name="app_connector_status_on">Status: Mes Validation Connection is ON</string>
+    <string name="app_connector_status_off">Status: Mes Validation Connection is still OFF</string>
+    <string name="app_connector_realme_hint">On Realme / Android 13+: first tap ALLOW RESTRICTED SETTINGS, open App info menu (⋮) &gt; Allow restricted settings, then enable the service. Remove the floating shortcut if you added it.</string>
 
     <string name="dashboard_title">Helper Application</string>
     <string name="main_app_section">Mes Validation</string>
     <string name="main_app_found">Mes Validation app (version %1$s) found.</string>
     <string name="main_app_not_found">Mes Validation (com.mesvalidation) is not installed. Install it to record calls.</string>
     <string name="open">OPEN</string>
+    <string name="recording_diagnostics">Call recording status</string>
+    <string name="recording_mode_local">Mode: Local recording (Mes Validation not installed)</string>
+    <string name="recording_mode_mes">Mode: Signals Mes Validation app to record</string>
+    <string name="recording_audio_limitation">ACR-style (default): speakerphone + mic during calls — same as Cube ACR Helper Accessibility. Optional: Shizuku or MediaProjection below.</string>
+    <string name="acr_mode_on">Status: ACR-style ON — speaker boost during calls (like Cube Helper)</string>
+    <string name="acr_mode_speaker">Speaker boost during calls</string>
+    <string name="acr_recording_section">Call recording (ACR-style)</string>
+    <string name="acr_recording_desc">Default — same as Cube ACR Helper without Shizuku: turns on speakerphone during calls so the microphone picks up both sides. Keep volume audible; use speaker or earpiece at normal level.</string>
+    <string name="acr_speaker_boost_on">Speaker boost: ON during calls</string>
+    <string name="acr_speaker_boost_off">Speaker boost: OFF</string>
+    <string name="acr_speaker_boost_toggle_on">TURN ON SPEAKER BOOST</string>
+    <string name="acr_speaker_boost_toggle_off">TURN OFF SPEAKER BOOST</string>
+    <string name="shizuku_section">Optional: Shizuku (advanced)</string>
+    <string name="shizuku_desc">Not required for ACR-style recording. Only if you need true VOICE_CALL capture without speakerphone: enable Wireless debugging, open Shizuku, grant permission here.</string>
+    <string name="shizuku_guide_button">VIEW SHIZUKU SETUP GUIDE</string>
+    <string name="shizuku_open_button">OPEN SHIZUKU APP</string>
+    <string name="shizuku_install_button">INSTALL SHIZUKU</string>
+    <string name="shizuku_status_ready">Status: Shizuku connected (privileged recording service active)</string>
+    <string name="shizuku_status_not_installed">Status: Shizuku not installed</string>
+    <string name="shizuku_status_not_running">Status: Shizuku not running — open app and start</string>
+    <string name="shizuku_status_need_permission">Status: Start Shizuku, then return here to grant access</string>
+    <string name="shizuku_status_connecting">Status: Connecting to Shizuku service…</string>
+    <string name="shizuku_status_binding">Status: Starting privileged recording process… (wait up to 20s)</string>
+    <string name="shizuku_status_binding_attempt">Status: Binding Shizuku UserService (attempt %1$d of %2$d, ~20s each)…</string>
+    <string name="shizuku_status_disconnected">Status: Shizuku allowed but not connected. After enabling in Shizuku: Force stop Helper → open again → Retry.</string>
+    <string name="shizuku_status_no_binder">Status: Shizuku enabled in manager but binder missing — Force stop Helper, reopen app</string>
+    <string name="shizuku_status_bind_blocked">Status: ROM/OEM blocked Shizuku UserService (%1$d/%2$d automatic bind attempts failed).\n\nShizuku manager access is OK, but bindUserService never started the privileged subprocess (app_process :service). No onServiceConnected / user_service_created — common on hardened Samsung, MIUI, ColorOS, and some Android 14–16 builds.\n\nRecording: use Speaker boost + AMR. Restart the app after a Shizuku or system update to try again.</string>
+    <string name="shizuku_status_access_ok">Status: Shizuku access OK — auto-binding privileged recorder (up to 4 attempts)…</string>
+    <string name="two_way_recording_section">Two-way recording</string>
+    <string name="two_way_recording_desc">Records call playback + your mic (no loudspeaker). Tap Enable → Next → Start on the system screen. If the dialer opens, press Home and return here. Rebuild the app for a simpler “entire screen only” prompt. Keep Mes Validation Connection ON.</string>
+    <string name="two_way_dialog_title">Android permission required</string>
+    <string name="two_way_dialog_message">Two-way recording needs Android\'s \"Share screen\" permission (call audio only).\n\n1. Tap Continue\n2. Tap Next → Start (entire screen — do not pick apps)\n3. If the Phone/dialer opens anyway, press Home and open Call OS Helper again\n4. Check: \"Two-way mode ON\"\n\nTo avoid this flow, use Speaker boost instead.</string>
+    <string name="two_way_dialer_opened_hint">If the dialer opened after you picked Phone, press Home → open Call OS Helper. If status is not ON, tap Enable again (new builds use entire screen only).</string>
+    <string name="two_way_dialog_continue">Continue</string>
+    <string name="two_way_recording_enable">ENABLE TWO-WAY RECORDING</string>
+    <string name="two_way_recording_renew">RE-ENABLE TWO-WAY RECORDING</string>
+    <string name="two_way_recording_on">Status: Two-way mode ON (playback + mic)</string>
+    <string name="two_way_recording_off">Status: Two-way mode OFF — mic-only fallback</string>
+    <string name="last_audio_source">Audio source used</string>
+    <string name="device_capture_verdict">Device capability verdict</string>
+    <string name="preferred_engine">Preferred engine on this device</string>
+    <string name="last_recording_status">Last recording status</string>
+    <string name="last_recording_engine">Last engine used</string>
+    <string name="last_recording_file">Last saved file</string>
+    <string name="last_recording_time">Last update</string>
+    <string name="last_recording_error">Last error</string>
+    <string name="headset_two_way_hint">Headset/earphone was connected during the call. Your voice is recorded from the mic; the other person\'s voice usually plays only in the headset, so it is missing. For two-way: unplug headset, enable speaker boost, and use loudspeaker (same as Cube ACR).</string>
+    <string name="one_sided_enable_speaker_boost_hint">Only your voice was captured. On this Samsung build, two-way playback is blocked. Turn ON Speaker boost, unplug headset, use loudspeaker, and test again (AMR path).</string>
+    <string name="dual_playback_blocked_hint">Two-way is ON but Samsung blocked remote call audio in playback capture. Use Speaker boost + loudspeaker for both voices, or try Cube ACR on the same phone.</string>
+    <string name="recording_use_phone_speaker">Recording — tap SPEAKER in Phone app (both voices)</string>
+    <string name="other_party_need_phone_speaker">Your voice was saved. For the other person: during the call open Phone app and tap Speaker (loudspeaker), volume high, no headset. Rebuild app uses MIC source when speaker boost is on.</string>
+    <string name="one_sided_try_communication_hint">Saved with audio. If you still hear only yourself, reinstall this update (uses VOICE_COMMUNICATION + speaker probe) and test with loudspeaker at high volume.</string>
+    <string name="recent_recordings">Recent recordings</string>
+    <string name="none_yet">None yet</string>
     <string name="recordings_folder">Recordings folder</string>
     <string name="recordings_folder_path">Internal storage → Documents → MesValidationCallRecorder</string>
     <string name="recordings_folder_missing">Folder not created yet. Tap “Create folder” or complete setup again.</string>
@@ -48,9 +106,12 @@
     <string name="privacy_btn">PRIVACY</string>
     <string name="build_version">Build %1$s</string>
 
-    <string name="setup_complete_title">The Helper Application setup is complete.</string>
+    <string name="setup_complete_title">Setup complete</string>
+    <string name="setup_complete_local_message">Call OS Helper is ready. Calls are saved to Documents/MesValidationCallRecorder. On most phones only the microphone is allowed — use speakerphone if playback is silent.</string>
+    <string name="setup_complete_mes_message">Setup is complete. Open Mes Validation to use full recording, or continue using local recording in this app.</string>
     <string name="cancel">CANCEL</string>
     <string name="open_main_app">OPEN MES VALIDATION</string>
+    <string name="got_it">GOT IT</string>
 
     <string name="legal_notice_full">The legislation regarding phone call recording varies in different countries and states. Please make sure that you\'re not breaking the legislation of your or your callee/caller country. Always notify the callee/caller that your conversation will be recorded and ask for their permission.</string>
 </resources>

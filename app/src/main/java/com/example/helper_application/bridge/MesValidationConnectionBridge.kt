@@ -29,16 +29,22 @@ object MesValidationConnectionBridge {
         if (launch != null) {
             context.startActivity(launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         } else {
-            AppLog.w("Mes Validation launch intent not found")
+            AppLog.Bridge.w("Mes Validation launch intent not found")
         }
     }
 
     fun startRecording(context: Context, direction: CallDirection, phoneNumber: String?) {
         if (!isMesValidationInstalled(context)) {
-            AppLog.e("Mes Validation not installed — cannot START_RECORD")
+            AppLog.Bridge.e("Mes Validation not installed — cannot START_RECORD")
             return
         }
-        AppLog.i("Helper → Mes Validation: START_RECORD ${direction.name} number=$phoneNumber")
+        AppLog.Bridge.detail(
+            "start_record",
+            "direction" to direction.name,
+            "number" to (phoneNumber ?: "hidden"),
+            "action" to AppConstants.ACTION_START_RECORD,
+            "targetPackage" to AppConstants.MES_VALIDATION_PACKAGE
+        )
         val intent = Intent(AppConstants.ACTION_START_RECORD).apply {
             setPackage(AppConstants.MES_VALIDATION_PACKAGE)
             putExtra(AppConstants.EXTRA_DIRECTION, direction.name)
@@ -47,23 +53,51 @@ object MesValidationConnectionBridge {
         try {
             context.sendBroadcast(intent)
         } catch (e: Exception) {
-            AppLog.e("sendBroadcast START_RECORD failed", e)
+            AppLog.Bridge.e("sendBroadcast START_RECORD failed", e)
+        }
+    }
+
+    fun notifyRecordingComplete(
+        context: Context,
+        fileName: String,
+        absolutePath: String?
+    ) {
+        if (!isMesValidationInstalled(context)) return
+        AppLog.Bridge.detail(
+            "record_complete",
+            "fileName" to fileName,
+            "path" to (absolutePath ?: "unknown"),
+            "action" to AppConstants.ACTION_RECORD_COMPLETE
+        )
+        val intent = Intent(AppConstants.ACTION_RECORD_COMPLETE).apply {
+            setPackage(AppConstants.MES_VALIDATION_PACKAGE)
+            putExtra(AppConstants.EXTRA_FILE_NAME, fileName)
+            absolutePath?.let { putExtra(AppConstants.EXTRA_FILE_PATH, it) }
+        }
+        try {
+            context.sendBroadcast(intent)
+        } catch (e: Exception) {
+            AppLog.Bridge.e("sendBroadcast RECORD_COMPLETE failed", e)
         }
     }
 
     fun stopRecording(context: Context) {
         if (!isMesValidationInstalled(context)) {
-            AppLog.w("Mes Validation not installed — cannot STOP_RECORD")
+            AppLog.Bridge.w("Mes Validation not installed — cannot STOP_RECORD")
             return
         }
-        AppLog.i("Helper → Mes Validation: STOP_RECORD")
+        AppLog.Bridge.detail(
+            "stop_record",
+            "action" to AppConstants.ACTION_STOP_RECORD,
+            "targetPackage" to AppConstants.MES_VALIDATION_PACKAGE
+        )
         val intent = Intent(AppConstants.ACTION_STOP_RECORD).apply {
             setPackage(AppConstants.MES_VALIDATION_PACKAGE)
         }
         try {
             context.sendBroadcast(intent)
         } catch (e: Exception) {
-            AppLog.e("sendBroadcast STOP_RECORD failed", e)
+            AppLog.Bridge.e("sendBroadcast STOP_RECORD failed", e)
         }
     }
 }

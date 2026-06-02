@@ -7,13 +7,13 @@ import com.example.helper_application.setup.PermissionHelper
 import com.example.helper_application.setup.SetupPreferences
 import com.example.helper_application.setup.SystemSettingsHelper
 import com.example.helper_application.recording.CallMonitorService
-import com.example.helper_application.telephony.CallStateMonitor
+import com.example.helper_application.telephony.CallMonitoringCoordinator
 import com.example.helper_application.util.AppLog
 
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         if (intent?.action != Intent.ACTION_BOOT_COMPLETED) return
-        AppLog.i("BOOT_COMPLETED received")
+        AppLog.Setup.i("BOOT_COMPLETED received")
         if (!SetupPreferences.isSetupComplete(context)) {
             AppLog.d("Boot: setup not complete, skip monitor")
             return
@@ -26,8 +26,7 @@ class BootReceiver : BroadcastReceiver() {
             AppLog.w("Boot: App Connector off, skip monitor")
             return
         }
-        AppLog.i("Boot: starting call monitor")
-        CallMonitorService.startMonitoring(context.applicationContext)
-        CallStateMonitor(context.applicationContext).start()
+        AppLog.Setup.i("Boot: starting call monitor")
+        CallMonitoringCoordinator.startIfReady(context)
     }
 }

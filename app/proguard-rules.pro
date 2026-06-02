@@ -1,4 +1,12 @@
 # Add project specific ProGuard rules here.
+
+# Shizuku UserService (must keep class name for bindUserService)
+-keep class com.example.helper_application.shizuku.ShizukuRecordingUserService { *; }
+-keepclassmembers class com.example.helper_application.shizuku.ShizukuRecordingUserService {
+    public <init>();
+    public <init>(android.content.Context);
+}
+-keep class com.example.helper_application.shizuku.IShizukuRecordingService$Stub { *; }
 # You can control the set of applied configuration files using the
 # proguardFiles setting in build.gradle.
 #

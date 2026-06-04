@@ -34,7 +34,7 @@ Since **Android 9+**, normal apps cannot reliably record **both sides** of a cel
 Full integration steps (manifest, binder, permission, UserService, OEM timing): **[SHIZUKU_INTEGRATION.md](SHIZUKU_INTEGRATION.md)**.  
 **Fresh reinstall (both apps removed):** **[FRESH_INSTALL.md](FRESH_INSTALL.md)**.
 
-1. Install [Shizuku from Play Store](https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api) and start it ([setup guide](https://shizuku.rikka.app/guide/setup.html)).
+1. Install and start [Shizuku from Play Store](https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api) (`moe.shizuku.privileged.api`) — this is what Call OS Helper targets by default ([setup guide](https://shizuku.rikka.app/guide/setup.html)). NLL Store Shizuku is optional and only needed if you deliberately use APH with that fork.
 2. Android Studio: **Run → Always install with package manager** when debugging.
 3. Open Call OS Helper → Dashboard → **OPEN SHIZUKU APP** → start Shizuku → grant permission → app auto-tries **4** binds; **Ready** or ROM-blocked message.
 4. Place a test call; logs should show `user_service_connected` and engine `shizuku_voice_call`.
@@ -45,7 +45,7 @@ Engine priority: **Shizuku** → dual MediaProjection WAV → MediaRecorder M4A 
 
 | Approach | Link |
 |----------|------|
-| ACR Phone + Helper (Shizuku / Accessibility) | [acr.app](https://acr.app/) · [ACRPhoneHelper](https://github.com/NLLAPPS/ACRPhoneHelper) |
+| ACR Phone + Helper (Shizuku / Accessibility) | [acr.app](https://acr.app/) · [ACRPhoneHelper](https://github.com/NLLAPPS/ACRPhoneHelper) — public repo is Accessibility-only; Shizuku build uses NLL fork |
 | Shizuku (privileged APIs without root) | [User manual](https://github.com/NLLAPPS/Shizuku/wiki/User-manual) · [thedjchi fork](https://github.com/thedjchi/Shizuku) |
 | Open-source source ladder (MIC fallback) | [axet/android-call-recorder](https://gitlab.com/axet/android-call-recorder) |
 

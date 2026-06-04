@@ -177,65 +177,12 @@ class CallMonitorService : Service() {
                 } else {
                     0L
                 }
-                mainHandler.postDelayed({
-                    try {
-                        if (forceAudioRoute) {
-                            CallAudioBoost.applyForCall(this@CallMonitorService, force = true)
-                            audioRouteBoostApplied = true
-                        }
-                        val file = callRecorder.start()
-                        if (file == null) {
-                            val strictShizuku = RecordingPreferences.isStrictShizukuTestMode(this@CallMonitorService)
-                            val shizukuBlocked =
-                                com.example.helper_application.shizuku.ShizukuManager.readinessReason() ==
-                                    "service_bind_blocked"
-                            val startError = if (strictShizuku && shizukuBlocked) {
-                                "Shizuku service is blocked on this device build; using fallback recording mode."
-                            } else if (strictShizuku) {
-                                "Strict Shizuku mode: Shizuku is not ready. Open Dashboard, complete Shizuku setup, then retry."
-                            } else {
-                                "Could not start recording. Enable Accessibility + speaker boost."
-                            }
-                            AppLog.Recording.e(
-                                "All recorder engines failed — check [Engine] logs (expect AMR + VOICE_COMMUNICATION/MIC)"
-                            )
-                            RecordingPreferences.setLastError(
-                                this@CallMonitorService,
-                                startError
-                            )
-                            RecordingPreferences.setLastRecordingStatus(
-                                this@CallMonitorService,
-                                LastRecordingStatus.FAILED_START
-                            )
-                            promoteToForeground(NOTIFICATION_MONITORING, "Listening for calls…")
-                            AppLog.endCallSession()
-                        } else {
-                            AppLog.Recording.detail(
-                                "active",
-                                "engine" to callRecorder.activeEngineId,
-                                "extension" to callRecorder.activeOutputExtension,
-                                "temp" to file.absolutePath,
-                                "tempBytes" to file.length()
-                            )
-                            RecordingPreferences.setLastError(this@CallMonitorService, null)
-                            RecordingPreferences.setLastRecordingStatus(
-                                this@CallMonitorService,
-                                LastRecordingStatus.RECORDING,
-                                engineId = callRecorder.activeEngineId
-                            )
-                            if (audioRouteBoostApplied) {
-                                mainHandler.removeCallbacks(routeRefreshRunnable)
-                                mainHandler.postDelayed(routeRefreshRunnable, 3_000L)
-                            }
-                        }
-                    } catch (e: Exception) {
-                        AppLog.Recording.e("beginCallRecording start crashed", e)
-                        RecordingPreferences.setLastError(
-                            this@CallMonitorService,
-                            "Recording error: ${e.message}"
-                        )
-                    }
-                }, routeDelayMs)
+                if (RecordingPreferences.isShizukuOptIn(this@CallMonitorService) &&
+                    ShizukuManager.hasShizukuAccess()
+                ) {
+                    ShizukuManager.ensureBindForCall(this@CallMonitorService)
+                }
+                scheduleRecordingStartAfterShizuku(routeDelayMs, shizukuWaitAttempt = 0)
             } catch (e: Exception) {
                 AppLog.Recording.e("beginCallRecording crashed", e)
                 RecordingPreferences.setLastError(
@@ -243,6 +190,91 @@ class CallMonitorService : Service() {
                     "Recording error: ${e.message}"
                 )
             }
+        }
+    }
+
+    /**
+     * APH starts shell recording only when Shizuku UserService is up. We poll briefly at OFFHOOK
+     * so we do not fall back to app-process VOICE_CALL (silent .m4a on Android 10+).
+     */
+    private fun scheduleRecordingStartAfterShizuku(routeDelayMs: Long, shizukuWaitAttempt: Int) {
+        val delayMs = if (shizukuWaitAttempt == 0) routeDelayMs else ShizukuManager.CALL_BIND_POLL_MS
+        mainHandler.postDelayed({
+            if (callRecorder.isRecording) return@postDelayed
+            val optIn = RecordingPreferences.isShizukuOptIn(this)
+            val pending = optIn && ShizukuManager.isPrivilegedServicePending()
+            val maxAttempts = (ShizukuManager.CALL_BIND_WAIT_MS / ShizukuManager.CALL_BIND_POLL_MS).toInt()
+            if (pending && shizukuWaitAttempt < maxAttempts) {
+                ShizukuManager.ensureBindForCall(this)
+                AppLog.Recording.detail(
+                    "shizuku_wait_for_call",
+                    "attempt" to (shizukuWaitAttempt + 1),
+                    "max" to maxAttempts,
+                    "reason" to ShizukuManager.readinessReason()
+                )
+                scheduleRecordingStartAfterShizuku(routeDelayMs, shizukuWaitAttempt + 1)
+                return@postDelayed
+            }
+            if (pending) {
+                AppLog.Recording.w(
+                    "Shizuku privileged recorder not ready after ${ShizukuManager.CALL_BIND_WAIT_MS}ms — " +
+                        "using mic/speaker engines (not silent VOICE_CALL in app process)"
+                )
+            }
+            startRecordingEnginesNow()
+        }, delayMs)
+    }
+
+    private fun startRecordingEnginesNow() {
+        try {
+            if (callRecorder.isRecording) return
+            if (audioRouteBoostApplied) {
+                CallAudioBoost.applyForCall(this, force = true)
+            }
+            val file = callRecorder.start()
+            if (file == null) {
+                val strictShizuku = RecordingPreferences.isStrictShizukuTestMode(this)
+                val shizukuBlocked = ShizukuManager.readinessReason() == "service_bind_blocked"
+                val startError = if (strictShizuku && shizukuBlocked) {
+                    "Shizuku service is blocked on this device build; using fallback recording mode."
+                } else if (strictShizuku) {
+                    "Strict Shizuku mode: Shizuku is not ready. Open Dashboard, complete Shizuku setup, then retry."
+                } else {
+                    "Could not start recording. Enable Accessibility + speaker boost."
+                }
+                AppLog.Recording.e(
+                    "All recorder engines failed — check [Engine] logs (engine= shizuku_voice_call or AMR/MIC)"
+                )
+                RecordingPreferences.setLastError(this, startError)
+                RecordingPreferences.setLastRecordingStatus(
+                    this,
+                    LastRecordingStatus.FAILED_START
+                )
+                promoteToForeground(NOTIFICATION_MONITORING, "Listening for calls…")
+                AppLog.endCallSession()
+            } else {
+                AppLog.Recording.detail(
+                    "active",
+                    "engine" to callRecorder.activeEngineId,
+                    "extension" to callRecorder.activeOutputExtension,
+                    "shizukuReady" to ShizukuManager.isReady(),
+                    "temp" to file.absolutePath,
+                    "tempBytes" to file.length()
+                )
+                RecordingPreferences.setLastError(this, null)
+                RecordingPreferences.setLastRecordingStatus(
+                    this,
+                    LastRecordingStatus.RECORDING,
+                    engineId = callRecorder.activeEngineId
+                )
+                if (audioRouteBoostApplied) {
+                    mainHandler.removeCallbacks(routeRefreshRunnable)
+                    mainHandler.postDelayed(routeRefreshRunnable, 3_000L)
+                }
+            }
+        } catch (e: Exception) {
+            AppLog.Recording.e("beginCallRecording start crashed", e)
+            RecordingPreferences.setLastError(this, "Recording error: ${e.message}")
         }
     }
 

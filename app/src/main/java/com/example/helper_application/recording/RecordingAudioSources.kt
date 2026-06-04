@@ -3,6 +3,7 @@ package com.example.helper_application.recording
 import android.content.Context
 import android.media.MediaRecorder
 import android.os.Build
+import com.example.helper_application.shizuku.ShizukuManager
 
 /**
  * Android 9+ blocks true line-level call capture for normal apps.
@@ -52,9 +53,11 @@ object RecordingAudioSources {
         val acr = RecordingPreferences.isAcrStyleRecording(context)
         val speakerBoost = RecordingPreferences.isSpeakerBoostEnabled(context)
         val phoneSpeakerOn = CallAudioBoost.isSpeakerphoneActive(context)
+        // Shizuku access OK but shell recorder not up yet: VOICE_CALL in app UID → valid file, no audio (Android 10+).
+        val shizukuPending = ShizukuManager.isPrivilegedServicePending()
         return when {
-            (cubeOrBlocked || acr) && speakerBoost && phoneSpeakerOn -> acrMicSpeakerOrder
-            shizukuBlockedProfile || cubeOrBlocked || acr -> acrAccessibilityOrder
+            (cubeOrBlocked || acr || shizukuPending) && speakerBoost && phoneSpeakerOn -> acrMicSpeakerOrder
+            shizukuBlockedProfile || cubeOrBlocked || acr || shizukuPending -> acrAccessibilityOrder
             else -> privilegedCaptureOrder
         }
     }

@@ -15,6 +15,7 @@ import com.example.helper_application.recording.CallAudioBoost
 import com.example.helper_application.recording.CallDirection
 import com.example.helper_application.recording.CallMonitorService
 import com.example.helper_application.recording.RecordingPreferences
+import com.example.helper_application.shizuku.ShizukuManager
 import com.example.helper_application.util.AppLog
 
 class CallStateMonitor(private val context: Context) {
@@ -115,6 +116,9 @@ class CallStateMonitor(private val context: Context) {
             TelephonyManager.CALL_STATE_RINGING -> {
                 ringDetected = true
                 AppLog.Telephony.i("Incoming call RINGING")
+                if (RecordingPreferences.isShizukuOptIn(context) && ShizukuManager.hasShizukuAccess()) {
+                    ShizukuManager.ensureBindForCall(context)
+                }
                 if (RecordingPreferences.isAcrStyleRecording(context)) {
                     CallAudioBoost.applyForCall(context)
                 }
@@ -127,6 +131,9 @@ class CallStateMonitor(private val context: Context) {
                         CallDirection.OUTGOING
                     }
                     AppLog.Telephony.i("Call answered/active OFFHOOK -> auto-start recording (${direction.name})")
+                    if (RecordingPreferences.isShizukuOptIn(context) && ShizukuManager.hasShizukuAccess()) {
+                        ShizukuManager.ensureBindForCall(context)
+                    }
                     if (RecordingPreferences.isAcrStyleRecording(context) && !ringDetected) {
                         CallAudioBoost.applyForCall(context)
                     }

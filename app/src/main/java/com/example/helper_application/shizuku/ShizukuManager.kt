@@ -24,17 +24,22 @@ object ShizukuManager {
     private const val PROCESS_NAME_SUFFIX = "service"
     private const val USER_SERVICE_VERSION = 1
     private const val BIND_TIMEOUT_MS = 20_000L
+    /** ColorOS/realme often need longer for app_process :service (Shizuku #451). */
+    private const val BIND_TIMEOUT_FIRST_MS = 35_000L
     private const val FIRST_BIND_DELAY_MS = 2_500L
-    /** Exactly this many bind attempts per app session; then show ROM-blocked message (no manual retry). */
+    /** Automatic attempts per cycle; user can tap Retry on dashboard for a fresh cycle. */
     private const val SERVICE_BLOCKED_AFTER_TIMEOUTS = 4
 
     private const val USER_SERVICE_CLASS =
         "com.example.helper_application.shizuku.ShizukuRecordingUserService"
+    /** Stable UserService identity (Shizuku matches by tag; class name alone is fragile with R8). */
+    private const val USER_SERVICE_TAG = "helper_recording_v1"
 
+    /** NLL fork first — same order APH / NLL Store users expect (com.nll.shizuku.privileged.api). */
     private val managerPackages = listOf(
+        "com.nll.shizuku.privileged.api",
         "moe.shizuku.privileged.api",
-        "moe.shizuku.privileged.manager",
-        "com.nll.shizuku.privileged.api"
+        "moe.shizuku.privileged.manager"
     )
 
     const val PLAY_STORE_PACKAGE = "moe.shizuku.privileged.api"
@@ -98,6 +103,7 @@ object ShizukuManager {
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
             cancelBindTimeout()
+            cancelPeekStallRecovery()
             val alive = binder != null && binder.pingBinder()
             recordingService = if (alive) {
                 IShizukuRecordingService.Stub.asInterface(binder)
@@ -166,6 +172,18 @@ object ShizukuManager {
     /** Binder + permission — Shizuku "allows" the app; does not mean recording subprocess works. */
     fun hasShizukuAccess(): Boolean = isBinderAvailable() && hasPermission()
 
+    /** Max wait at call start for privileged subprocess (APH binds before/during call). */
+    const val CALL_BIND_WAIT_MS = 12_000L
+    const val CALL_BIND_POLL_MS = 400L
+
+    /** Shizuku allowed but UserService not connected yet — do not use app-process VOICE_CALL (silent files). */
+    fun isPrivilegedServicePending(): Boolean =
+        hasShizukuAccess() && recordingService == null && !isUserServiceBlocked()
+
+    fun ensureBindForCall(context: Context) {
+        bindUserServiceIfNeeded(context.applicationContext)
+    }
+
     fun isReady(): Boolean = hasShizukuAccess() && recordingService != null
 
     fun isBindingInProgress(): Boolean = bindRequested && recordingService == null
@@ -215,17 +233,23 @@ object ShizukuManager {
             logStatus("bind_skipped_blocked")
             return
         }
-        if (bindRequested || recordingService != null) return
+        if (recordingService != null) return
+        if (bindRequested) return
 
         val component = userServiceComponent(ctx)
         if (tryAttachExistingUserService(component)) return
 
-        if (consecutiveBindTimeouts > 0) {
+        requestBindUserService(component, forceRemoveStale = false)
+    }
+
+    private fun requestBindUserService(component: ComponentName, forceRemoveStale: Boolean) {
+        if (forceRemoveStale) {
             runCatching {
                 Shizuku.unbindUserService(userServiceArgs(component), serviceConnection, true)
             }
+            recordingService = null
+            bindRequested = false
         }
-
         bindRequested = true
         bindCycleStarted = true
         try {
@@ -233,12 +257,14 @@ object ShizukuManager {
             AppLog.Shizuku.detail(
                 "bind_requested",
                 "component" to component.flattenToString(),
+                "tag" to USER_SERVICE_TAG,
                 "processSuffix" to PROCESS_NAME_SUFFIX,
-                "daemon" to false,
+                "daemon" to true,
                 "debuggable" to false,
                 "version" to USER_SERVICE_VERSION,
                 "shizukuUid" to shizukuUid(),
-                "attempt" to (consecutiveBindTimeouts + 1)
+                "attempt" to (consecutiveBindTimeouts + 1),
+                "forceRemoveStale" to forceRemoveStale
             )
             scheduleBindTimeout()
         } catch (e: Exception) {
@@ -256,18 +282,28 @@ object ShizukuManager {
             if (!bindRequested || recordingService != null) return@Runnable
             bindRequested = false
             consecutiveBindTimeouts += 1
+            val waitedSec = bindTimeoutMsForAttempt(consecutiveBindTimeouts) / 1000
             AppLog.Shizuku.w(
-                "bind timeout (${BIND_TIMEOUT_MS / 1000}s): privileged subprocess never started. " +
-                    "Search Logcat (no filter): ShizukuServiceStarter, user_service_created. " +
+                "bind timeout (${waitedSec}s): privileged subprocess never started. " +
+                    "In Logcat set package to moe.shizuku.privileged.api and search ShizukuServiceStarter " +
+                    "(or remove all filters). In Helper tag search user_service_created. " +
                     "attempt=$consecutiveBindTimeouts/${SERVICE_BLOCKED_AFTER_TIMEOUTS}"
             )
             logStatus("bind_timeout")
             if (consecutiveBindTimeouts < SERVICE_BLOCKED_AFTER_TIMEOUTS && hasShizukuAccess()) {
+                val ctx = lastContext
+                val component = ctx?.let { userServiceComponent(it) }
+                val forceRemove = consecutiveBindTimeouts >= 2 && component != null
                 mainHandler.postDelayed({
                     AppLog.Shizuku.i(
-                        "bind_auto_retry ${consecutiveBindTimeouts + 1}/$SERVICE_BLOCKED_AFTER_TIMEOUTS"
+                        "bind_auto_retry ${consecutiveBindTimeouts + 1}/$SERVICE_BLOCKED_AFTER_TIMEOUTS" +
+                            if (forceRemove) " (unbind+rebind stale subprocess)" else ""
                     )
-                    bindUserServiceIfNeeded(lastContext)
+                    if (forceRemove && component != null) {
+                        requestBindUserService(component, forceRemoveStale = true)
+                    } else {
+                        bindUserServiceIfNeeded(lastContext)
+                    }
                 }, 1_500L)
             } else if (isUserServiceBlocked()) {
                 AppLog.Shizuku.e(
@@ -279,8 +315,12 @@ object ShizukuManager {
             }
         }
         bindTimeoutRunnable = runnable
-        mainHandler.postDelayed(runnable, BIND_TIMEOUT_MS)
+        val attemptIndex = consecutiveBindTimeouts + 1
+        mainHandler.postDelayed(runnable, bindTimeoutMsForAttempt(attemptIndex))
     }
+
+    private fun bindTimeoutMsForAttempt(attemptIndex: Int): Long =
+        if (attemptIndex <= 1) BIND_TIMEOUT_FIRST_MS else BIND_TIMEOUT_MS
 
     private fun cancelBindTimeout() {
         bindTimeoutRunnable?.let { mainHandler.removeCallbacks(it) }
@@ -290,28 +330,64 @@ object ShizukuManager {
     private fun userServiceComponent(context: Context): ComponentName =
         ComponentName(context.packageName, USER_SERVICE_CLASS)
 
-    /** Matches official Shizuku demo: daemon=false, short suffix, no custom tag, debuggable=false. */
+    /** Matches Shizuku demo; debuggable follows debug builds (demo uses DEBUG). Release stays false for Samsung. */
     private fun userServiceArgs(component: ComponentName): Shizuku.UserServiceArgs =
         Shizuku.UserServiceArgs(component)
-            .daemon(false)
+            .tag(USER_SERVICE_TAG)
+            // daemon(true) = subprocess survives app pause (Shizuku default); helps OEMs that spawn slowly.
+            .daemon(true)
             .debuggable(false)
             .version(USER_SERVICE_VERSION)
             .processNameSuffix(PROCESS_NAME_SUFFIX)
 
+    /**
+     * Reattach if subprocess already running ([Shizuku.peekUserService]).
+     * Must not set [bindRequested] here — that skipped [bindUserService] and caused bind_timeout loops.
+     */
     private fun tryAttachExistingUserService(component: ComponentName): Boolean {
         val args = userServiceArgs(component)
         return runCatching {
             val code = Shizuku.peekUserService(args, serviceConnection)
             AppLog.Shizuku.detail("peek_user_service", "code" to code)
-            if (code != -1) {
-                bindRequested = false
-                consecutiveBindTimeouts = 0
-                logStatus("peek_reattached")
-                true
-            } else {
-                false
+            when {
+                recordingService != null -> {
+                    bindRequested = false
+                    consecutiveBindTimeouts = 0
+                    logStatus("peek_reattached")
+                    true
+                }
+                code != -1 -> {
+                    AppLog.Shizuku.i(
+                        "peek: subprocess reported running (v$code); scheduling bind if callback stalls"
+                    )
+                    schedulePeekStallRecovery(component)
+                    false
+                }
+                else -> false
             }
         }.getOrDefault(false)
+    }
+
+    private var peekStallRecoveryRunnable: Runnable? = null
+
+    private fun schedulePeekStallRecovery(component: ComponentName) {
+        peekStallRecoveryRunnable?.let { mainHandler.removeCallbacks(it) }
+        val runnable = Runnable {
+            peekStallRecoveryRunnable = null
+            if (recordingService != null || isUserServiceBlocked()) return@Runnable
+            if (!hasShizukuAccess()) return@Runnable
+            AppLog.Shizuku.w("peek stall: no onServiceConnected — calling bindUserService")
+            if (!bindRequested) {
+                requestBindUserService(component, forceRemoveStale = false)
+            }
+        }
+        peekStallRecoveryRunnable = runnable
+        mainHandler.postDelayed(runnable, 1_000L)
+    }
+
+    private fun cancelPeekStallRecovery() {
+        peekStallRecoveryRunnable?.let { mainHandler.removeCallbacks(it) }
+        peekStallRecoveryRunnable = null
     }
 
     fun unbindUserService() {
@@ -328,13 +404,40 @@ object ShizukuManager {
 
     fun getService(): IShizukuRecordingService? = recordingService
 
-    fun resetBindStateForRetest() {
-        cancelBindTimeout()
+    /**
+     * @param cancelInFlightBind false for soft UI refresh; true when user re-opens Shizuku flow.
+     */
+    fun resetBindStateForRetest(cancelInFlightBind: Boolean = true) {
+        if (cancelInFlightBind) {
+            cancelBindTimeout()
+            cancelPeekStallRecovery()
+            bindRequested = false
+            bindCycleStarted = false
+            AppLog.Shizuku.i("Shizuku bind cycle reset (in-flight bind cancelled)")
+        } else {
+            AppLog.Shizuku.i("Shizuku bind counters reset (in-flight bind kept)")
+        }
         consecutiveBindTimeouts = 0
-        bindRequested = false
-        bindCycleStarted = false
-        AppLog.Shizuku.i("Shizuku bind cycle reset")
         logStatus("bind_state_reset")
+    }
+
+    /**
+     * Fresh bind cycle after ROM-blocked or user fix (battery, Shizuku restart). Does not open Shizuku app.
+     */
+    fun retryPrivilegedBind(context: Context) {
+        val ctx = context.applicationContext
+        lastContext = ctx
+        if (!hasShizukuAccess()) {
+            AppLog.Shizuku.w("retryPrivilegedBind: need Shizuku access first")
+            requestPermission()
+            return
+        }
+        resetBindStateForRetest(cancelInFlightBind = true)
+        AppLog.Shizuku.i("Manual privileged bind retry (fresh 4-attempt cycle)")
+        mainHandler.postDelayed({
+            val component = userServiceComponent(ctx)
+            requestBindUserService(component, forceRemoveStale = true)
+        }, 800L)
     }
 
     fun launchShizukuFlow(context: Context) {
@@ -345,6 +448,7 @@ object ShizukuManager {
             return
         }
         openShizukuManager(context)
+        // When user returns from Shizuku, binder refresh activity or next resume will bind again.
     }
 
     fun resumeSetup(context: Context) {
@@ -377,8 +481,14 @@ object ShizukuManager {
         }
         if (isReady()) return
         if (isUserServiceBlocked()) return
-        if (isBindingInProgress()) return
-        if (bindCycleStarted) return
+        if (isBindingInProgress()) {
+            AppLog.Shizuku.detail("resume_setup_skipped", "reason" to "bind_in_progress")
+            return
+        }
+        if (bindCycleStarted && recordingService == null && bindRequested) {
+            AppLog.Shizuku.detail("resume_setup_skipped", "reason" to "awaiting_first_bind_callback")
+            return
+        }
         mainHandler.postDelayed({
             bindUserServiceIfNeeded(context)
         }, if (wakeBinderIfMissing) 3_000L else 2_000L)

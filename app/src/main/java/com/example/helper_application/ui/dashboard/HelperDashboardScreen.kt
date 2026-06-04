@@ -91,7 +91,8 @@ fun HelperDashboardScreen(
                 shizukuInstalled = ShizukuManager.isShizukuInstalled(context)
                 shizukuReady = ShizukuManager.isReady()
                 shizukuBinding = ShizukuManager.isBindingInProgress()
-                ShizukuManager.resumeSetupAfterShizukuToggle(context)
+                // Do not reset bind cycle on every resume — that cancelled in-flight UserService binds.
+                ShizukuManager.resumeSetup(context)
                 shizukuReady = ShizukuManager.isReady()
                 shizukuBinding = ShizukuManager.isBindingInProgress()
                 speakerBoostOn = RecordingPreferences.isSpeakerBoostEnabled(context)
@@ -221,6 +222,15 @@ fun HelperDashboardScreen(
                     color = Color.DarkGray
                 )
                 Spacer(modifier = Modifier.height(8.dp))
+                ShizukuChecklistRow(
+                    label = stringResource(R.string.shizuku_check_access),
+                    ok = ShizukuManager.hasShizukuAccess()
+                )
+                ShizukuChecklistRow(
+                    label = stringResource(R.string.shizuku_check_privileged),
+                    ok = ShizukuManager.isReady()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 val shizukuBlocked = ShizukuManager.readinessReason() == "service_bind_blocked"
                 val shizukuStatusText = when {
                     shizukuReady -> stringResource(R.string.shizuku_status_ready)
@@ -261,6 +271,13 @@ fun HelperDashboardScreen(
                     }
                 )
                 Spacer(modifier = Modifier.height(10.dp))
+                if (shizukuBlocked && shizukuInstalled) {
+                    CubeDashboardGrayButton(
+                        text = stringResource(R.string.shizuku_retry_bind_button),
+                        onClick = { ShizukuManager.retryPrivilegedBind(context) }
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
                 CubeDashboardGrayButton(
                     text = if (shizukuInstalled) {
                         stringResource(R.string.shizuku_open_button)
@@ -543,6 +560,24 @@ private fun RecordingDiagnosticsSection(snapshot: RecordingDiagnosticsSnapshot) 
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ShizukuChecklistRow(label: String, ok: Boolean) {
+    Row(modifier = Modifier.padding(vertical = 2.dp)) {
+        Text(
+            text = if (ok) "✓" else "○",
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (ok) Color(0xFF2E7D32) else Color(0xFF9E9E9E),
+            modifier = Modifier.padding(end = 8.dp)
+        )
+        Text(
+            text = label,
+            fontSize = 14.sp,
+            color = if (ok) Color(0xFF2E7D32) else Color.DarkGray
+        )
     }
 }
 

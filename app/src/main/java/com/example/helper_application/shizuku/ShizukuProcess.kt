@@ -8,9 +8,10 @@ object ShizukuProcess {
 
     const val USER_SERVICE_SUFFIX = "service"
 
+    /** Shizuku subprocess is exactly `package:service` (see [ShizukuManager] processNameSuffix). */
     fun isUserServiceProcess(context: Context): Boolean {
         val name = processName(context) ?: return false
-        return name.contains(USER_SERVICE_SUFFIX)
+        return name == "${context.packageName}:$USER_SERVICE_SUFFIX"
     }
 
     fun processName(context: Context): String? {

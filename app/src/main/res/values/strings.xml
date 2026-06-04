@@ -49,7 +49,9 @@
     <string name="acr_speaker_boost_toggle_on">TURN ON SPEAKER BOOST</string>
     <string name="acr_speaker_boost_toggle_off">TURN OFF SPEAKER BOOST</string>
     <string name="shizuku_section">Optional: Shizuku (advanced)</string>
-    <string name="shizuku_desc">Not required for ACR-style recording. Only if you need true VOICE_CALL capture without speakerphone: enable Wireless debugging, open Shizuku, grant permission here.</string>
+    <string name="shizuku_desc">Not required for ACR-style recording. For advanced capture: install Shizuku from Play Store (moe.shizuku.privileged.api), start it via wireless debugging, then grant permission here. NLL Store Shizuku is optional (only if you use ACR Phone Helper with that fork).</string>
+    <string name="shizuku_check_access">Shizuku access (binder + permission)</string>
+    <string name="shizuku_check_privileged">Privileged recorder (UserService subprocess)</string>
     <string name="shizuku_guide_button">VIEW SHIZUKU SETUP GUIDE</string>
     <string name="shizuku_open_button">OPEN SHIZUKU APP</string>
     <string name="shizuku_install_button">INSTALL SHIZUKU</string>
@@ -58,11 +60,12 @@
     <string name="shizuku_status_not_running">Status: Shizuku not running — open app and start</string>
     <string name="shizuku_status_need_permission">Status: Start Shizuku, then return here to grant access</string>
     <string name="shizuku_status_connecting">Status: Connecting to Shizuku service…</string>
-    <string name="shizuku_status_binding">Status: Starting privileged recording process… (wait up to 20s)</string>
-    <string name="shizuku_status_binding_attempt">Status: Binding Shizuku UserService (attempt %1$d of %2$d, ~20s each)…</string>
-    <string name="shizuku_status_disconnected">Status: Shizuku allowed but not connected. After enabling in Shizuku: Force stop Helper → open again → Retry.</string>
+    <string name="shizuku_status_binding">Status: Starting privileged recording process… (first wait up to 35s)</string>
+    <string name="shizuku_status_binding_attempt">Status: Binding privileged recorder (attempt %1$d of %2$d)…</string>
+    <string name="shizuku_status_disconnected">Status: Shizuku allowed but privileged recorder not running. After enabling in Shizuku: force-stop Call OS Helper → open again.</string>
     <string name="shizuku_status_no_binder">Status: Shizuku enabled in manager but binder missing — Force stop Helper, reopen app</string>
-    <string name="shizuku_status_bind_blocked">Status: ROM/OEM blocked Shizuku UserService (%1$d/%2$d automatic bind attempts failed).\n\nShizuku manager access is OK, but bindUserService never started the privileged subprocess (app_process :service). No onServiceConnected / user_service_created — common on hardened Samsung, MIUI, ColorOS, and some Android 14–16 builds.\n\nRecording: use Speaker boost + AMR. Restart the app after a Shizuku or system update to try again.</string>
+    <string name="shizuku_status_bind_blocked">Status: Privileged recorder did not start (%1$d/%2$d bind attempts timed out).\n\nShizuku access is OK. The shell subprocess (app_process :service) never connected — common on realme/ColorOS, MIUI, Samsung, Android 14–16.\n\nTry: Settings → Apps → Shizuku + Call OS Helper → Battery → Unrestricted. In Shizuku tap Start, then tap RETRY below. Logcat: package moe.shizuku.privileged.api, search ShizukuServiceStarter.\n\nUntil privileged recorder works: enable Speaker boost (above) for audible one-sided capture.</string>
+    <string name="shizuku_retry_bind_button">RETRY PRIVILEGED RECORDER</string>
     <string name="shizuku_status_access_ok">Status: Shizuku access OK — auto-binding privileged recorder (up to 4 attempts)…</string>
     <string name="two_way_recording_section">Two-way recording</string>
     <string name="two_way_recording_desc">Records call playback + your mic (no loudspeaker). Tap Enable → Next → Start on the system screen. If the dialer opens, press Home and return here. Rebuild the app for a simpler “entire screen only” prompt. Keep Mes Validation Connection ON.</string>

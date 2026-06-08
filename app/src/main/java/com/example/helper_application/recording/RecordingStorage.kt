@@ -279,6 +279,19 @@ object RecordingStorage {
         return "phone_${timestamp}__${number}.amr"
     }
 
+    fun listSavedRecordings(): List<File> {
+        val dir = getPublicFolderFile()
+        if (!dir.isDirectory) return emptyList()
+        return dir.listFiles()
+            ?.filter { file ->
+                file.isFile &&
+                    file.name != FOLDER_MARKER_FILE &&
+                    file.extension.lowercase(java.util.Locale.US) in setOf("amr", "wav", "m4a", "mp4")
+            }
+            ?.sortedByDescending { it.lastModified() }
+            ?: emptyList()
+    }
+
     private fun mimeTypeForFile(fileName: String): String {
         return when (fileName.substringAfterLast('.', "").lowercase(java.util.Locale.US)) {
             "wav" -> "audio/wav"

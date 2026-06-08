@@ -6,14 +6,15 @@ import com.example.helper_application.setup.SetupPreferences
 import com.example.helper_application.shizuku.ShizukuManager
 import com.example.helper_application.shizuku.ShizukuProcess
 import com.example.helper_application.util.AppLog
+import dagger.hilt.android.HiltAndroidApp
 
+@HiltAndroidApp
 class HelperApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
         val process = ShizukuProcess.processName(this) ?: "unknown"
         if (ShizukuProcess.isUserServiceProcess(this)) {
-            // Shizuku shell subprocess — do not init ShizukuManager or storage (breaks bind / startup).
             AppLog.i("HelperApplication shizuku user-service process: $process pid=${android.os.Process.myPid()}")
             return
         }

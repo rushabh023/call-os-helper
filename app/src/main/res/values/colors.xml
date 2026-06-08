@@ -1,5 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Brand -->
+    <color name="dialer_primary">#1B6EF3</color>
+    <color name="dialer_primary_dark">#0D47A1</color>
+    <color name="dialer_on_primary">#FFFFFF</color>
+    <color name="dialer_secondary">#5C6BC0</color>
+    <color name="dialer_tertiary">#00897B</color>
+
+    <!-- Surfaces -->
+    <color name="dialer_background">#F4F6FB</color>
+    <color name="dialer_surface">#FFFFFF</color>
+    <color name="dialer_surface_variant">#E8EDF5</color>
+    <color name="dialer_surface_container">#EEF2F8</color>
+    <color name="dialer_surface_container_high">#E3E9F2</color>
+    <color name="dialer_on_surface">#1A1C1E</color>
+    <color name="dialer_on_surface_variant">#5C6678</color>
+    <color name="dialer_outline">#C5CED9</color>
+    <color name="dialer_outline_variant">#DDE3EC</color>
+
+    <!-- Call semantics -->
+    <color name="dialer_call_green">#2E7D32</color>
+    <color name="dialer_call_green_container">#C8E6C9</color>
+    <color name="dialer_call_red">#C62828</color>
+    <color name="dialer_call_red_container">#FFCDD2</color>
+    <color name="dialer_recording_red">#E53935</color>
+    <color name="dialer_missed">#D84315</color>
+    <color name="dialer_incoming">#1565C0</color>
+    <color name="dialer_outgoing">#2E7D32</color>
+
+    <!-- Avatar palette -->
+    <color name="avatar_1">#5C6BC0</color>
+    <color name="avatar_2">#26A69A</color>
+    <color name="avatar_3">#7E57C2</color>
+    <color name="avatar_4">#EF6C00</color>
+    <color name="avatar_5">#43A047</color>
+    <color name="avatar_6">#8E24AA</color>
+
+    <!-- Legacy / Compose -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>

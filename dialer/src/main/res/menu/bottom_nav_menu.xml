@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/dialpadFragment"
+        android:icon="@android:drawable/ic_menu_call"
+        android:title="@string/tab_dialpad" />
+    <item
+        android:id="@+id/callLogFragment"
+        android:icon="@android:drawable/ic_menu_recent_history"
+        android:title="@string/tab_recents" />
+    <item
+        android:id="@+id/contactsFragment"
+        android:icon="@android:drawable/ic_menu_my_calendar"
+        android:title="@string/tab_contacts" />
+    <item
+        android:id="@+id/recordingsFragment"
+        android:icon="@android:drawable/ic_btn_speak_now"
+        android:title="@string/tab_recordings" />
+    <item
+        android:id="@+id/settingsFragment"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:title="@string/tab_settings" />
+</menu>

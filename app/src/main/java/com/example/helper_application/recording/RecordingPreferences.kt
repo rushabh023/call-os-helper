@@ -29,9 +29,40 @@ object RecordingPreferences {
     private const val KEY_INCALL_CAPTURE_BLOCKED = "incall_capture_blocked"
     private const val KEY_LAST_CALL_HEADSET = "last_call_headset_connected"
 
+    // Cube ACR-style settings (Recording / Backup / Misc screens)
+    private const val KEY_PHONE_AUDIO_SOURCE = "cube_phone_audio_source"
+    private const val KEY_VOIP_AUDIO_SOURCE = "cube_voip_audio_source"
+    private const val KEY_PHONE_DELAY_MS = "cube_phone_delay_ms"
+    private const val KEY_VOIP_DELAY_MS = "cube_voip_delay_ms"
+    private const val KEY_PHONE_CLARITY = "cube_phone_clarity"
+    private const val KEY_VOIP_CLARITY = "cube_voip_clarity"
+    private const val KEY_FORCE_IN_COMMUNICATION = "cube_force_in_communication"
+    private const val KEY_FORCE_IN_CALL_VOIP = "cube_force_in_call_voip"
+    private const val KEY_SKIP_HEADSET_CALLS = "cube_skip_headset_calls"
+    private const val KEY_MAXIMIZE_INCALL_VOLUME = "cube_maximize_incall_volume"
+    private const val KEY_RECORD_CELLULAR = "cube_record_cellular"
+    private const val KEY_RECORD_MEET = "cube_record_meet"
+    private const val KEY_AUTOSTART_RECORDING = "cube_autostart_recording"
+    private const val KEY_BACKUP_GOOGLE_DRIVE = "cube_backup_gdrive"
+    private const val KEY_BACKUP_DROPBOX = "cube_backup_dropbox"
+    private const val KEY_BACKUP_ONEDRIVE = "cube_backup_onedrive"
+    private const val KEY_BACKUP_ONEDRIVE_BUSINESS = "cube_backup_onedrive_biz"
+    private const val KEY_BACKUP_FTP = "cube_backup_ftp"
+    private const val KEY_BACKUP_EMAIL = "cube_backup_email"
+    private const val KEY_BACKUP_CELLULAR = "cube_backup_cellular"
+    private const val KEY_DELETE_AFTER_BACKUP = "cube_delete_after_backup"
+    private const val KEY_TITLE_STARTS_WITH_DATE = "cube_title_starts_date"
+    private const val KEY_HIDE_RECORDING_CONTROLS = "cube_hide_recording_controls"
+    private const val KEY_DARK_THEME = "cube_dark_theme"
+    private const val KEY_POST_CALL_ACTIONS = "cube_post_call_actions"
+    private const val KEY_SHAKE_TO_MARK = "cube_shake_to_mark"
+    private const val KEY_SHAKE_THRESHOLD = "cube_shake_threshold"
+    private const val KEY_SHAKE_VIBRATION = "cube_shake_vibration"
+    private const val KEY_GEO_TAGGING = "cube_geo_tagging"
+
     fun isAutoRecordEnabled(context: Context): Boolean {
         return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getBoolean(KEY_AUTO_RECORD, false)
+            .getBoolean(KEY_AUTO_RECORD, true)
     }
 
     fun setAutoRecordEnabled(context: Context, enabled: Boolean) {
@@ -224,9 +255,198 @@ object RecordingPreferences {
             com.example.helper_application.shizuku.ShizukuManager.readinessReason() == "service_bind_blocked"
     }
 
-    /** Cube FAQ recommends ~5s auto-delay before starting capture on some Samsung builds. */
-    fun recordingStartDelayMs(context: Context): Long {
-        return if (isCubeCompatibilityMode(context)) 5_000L else 900L
+    /** Cube FAQ: delay after connect before MediaRecorder.start (phone vs VoIP). */
+    fun recordingStartDelayMs(context: Context, voip: Boolean = false): Long {
+        return if (voip) getVoipRecordingDelayMs(context) else getPhoneRecordingDelayMs(context)
+    }
+
+    fun getPhoneRecordingDelayMs(context: Context): Long {
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getLong(KEY_PHONE_DELAY_MS, 4_000L)
+    }
+
+    fun setPhoneRecordingDelayMs(context: Context, ms: Long) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putLong(KEY_PHONE_DELAY_MS, ms.coerceIn(0L, 15_000L)).apply()
+    }
+
+    fun getVoipRecordingDelayMs(context: Context): Long {
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getLong(KEY_VOIP_DELAY_MS, 1_000L)
+    }
+
+    fun setVoipRecordingDelayMs(context: Context, ms: Long) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putLong(KEY_VOIP_DELAY_MS, ms.coerceIn(0L, 15_000L)).apply()
+    }
+
+    fun getPhoneAudioSourceId(context: Context): String {
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getString(KEY_PHONE_AUDIO_SOURCE, CubeAudioSourceOptions.DEFAULT_PHONE_ID)
+            ?: CubeAudioSourceOptions.DEFAULT_PHONE_ID
+    }
+
+    fun setPhoneAudioSourceId(context: Context, id: String) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putString(KEY_PHONE_AUDIO_SOURCE, id).apply()
+    }
+
+    fun getVoipAudioSourceId(context: Context): String {
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getString(KEY_VOIP_AUDIO_SOURCE, CubeAudioSourceOptions.DEFAULT_VOIP_ID)
+            ?: CubeAudioSourceOptions.DEFAULT_VOIP_ID
+    }
+
+    fun setVoipAudioSourceId(context: Context, id: String) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putString(KEY_VOIP_AUDIO_SOURCE, id).apply()
+    }
+
+    fun getPhoneClarityLevel(context: Context): Int =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getInt(KEY_PHONE_CLARITY, 100).coerceIn(0, 100)
+
+    fun setPhoneClarityLevel(context: Context, level: Int) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putInt(KEY_PHONE_CLARITY, level.coerceIn(0, 100)).apply()
+    }
+
+    fun getVoipClarityLevel(context: Context): Int =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getInt(KEY_VOIP_CLARITY, 60).coerceIn(0, 100)
+
+    fun setVoipClarityLevel(context: Context, level: Int) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putInt(KEY_VOIP_CLARITY, level.coerceIn(0, 100)).apply()
+    }
+
+    fun clarityGainMultiplier(level: Int): Float =
+        if (level <= 0) 1f else 1f + (level / 100f) * 1.5f
+
+    fun isForceInCommunicationMode(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean(KEY_FORCE_IN_COMMUNICATION, true)
+
+    fun setForceInCommunicationMode(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_FORCE_IN_COMMUNICATION, enabled).apply()
+    }
+
+    fun isForceInCallModeVoip(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean(KEY_FORCE_IN_CALL_VOIP, false)
+
+    fun setForceInCallModeVoip(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_FORCE_IN_CALL_VOIP, enabled).apply()
+    }
+
+    fun isSkipHeadsetCalls(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean(KEY_SKIP_HEADSET_CALLS, false)
+
+    fun setSkipHeadsetCalls(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_SKIP_HEADSET_CALLS, enabled).apply()
+    }
+
+    fun isMaximizeInCallVolume(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean(KEY_MAXIMIZE_INCALL_VOLUME, true)
+
+    fun setMaximizeInCallVolume(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_MAXIMIZE_INCALL_VOLUME, enabled).apply()
+    }
+
+    fun isRecordCellularEnabled(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean(KEY_RECORD_CELLULAR, true)
+
+    fun setRecordCellularEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_RECORD_CELLULAR, enabled).apply()
+    }
+
+    fun isRecordMeetEnabled(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean(KEY_RECORD_MEET, false)
+
+    fun setRecordMeetEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_RECORD_MEET, enabled).apply()
+    }
+
+    fun isAutostartRecording(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean(KEY_AUTOSTART_RECORDING, true)
+
+    fun setAutostartRecording(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_AUTOSTART_RECORDING, enabled).apply()
+        setAutoRecordEnabled(context, enabled)
+    }
+
+    fun isRecordingMasterEnabled(context: Context): Boolean = isAutoRecordEnabled(context)
+
+    fun setRecordingMasterEnabled(context: Context, enabled: Boolean) {
+        setAutoRecordEnabled(context, enabled)
+        setAutostartRecording(context, enabled)
+    }
+
+    fun isBackupGoogleDrive(context: Context): Boolean = prefBool(context, KEY_BACKUP_GOOGLE_DRIVE)
+    fun setBackupGoogleDrive(context: Context, v: Boolean) = setPrefBool(context, KEY_BACKUP_GOOGLE_DRIVE, v)
+    fun isBackupDropbox(context: Context): Boolean = prefBool(context, KEY_BACKUP_DROPBOX)
+    fun setBackupDropbox(context: Context, v: Boolean) = setPrefBool(context, KEY_BACKUP_DROPBOX, v)
+    fun isBackupOneDrive(context: Context): Boolean = prefBool(context, KEY_BACKUP_ONEDRIVE)
+    fun setBackupOneDrive(context: Context, v: Boolean) = setPrefBool(context, KEY_BACKUP_ONEDRIVE, v)
+    fun isBackupOneDriveBusiness(context: Context): Boolean = prefBool(context, KEY_BACKUP_ONEDRIVE_BUSINESS)
+    fun setBackupOneDriveBusiness(context: Context, v: Boolean) = setPrefBool(context, KEY_BACKUP_ONEDRIVE_BUSINESS, v)
+    fun isBackupFtp(context: Context): Boolean = prefBool(context, KEY_BACKUP_FTP)
+    fun setBackupFtp(context: Context, v: Boolean) = setPrefBool(context, KEY_BACKUP_FTP, v)
+    fun isBackupEmail(context: Context): Boolean = prefBool(context, KEY_BACKUP_EMAIL)
+    fun setBackupEmail(context: Context, v: Boolean) = setPrefBool(context, KEY_BACKUP_EMAIL, v)
+    fun isBackupOverCellular(context: Context): Boolean = prefBool(context, KEY_BACKUP_CELLULAR)
+    fun setBackupOverCellular(context: Context, v: Boolean) = setPrefBool(context, KEY_BACKUP_CELLULAR, v)
+    fun isDeleteAfterBackup(context: Context): Boolean = prefBool(context, KEY_DELETE_AFTER_BACKUP)
+    fun setDeleteAfterBackup(context: Context, v: Boolean) = setPrefBool(context, KEY_DELETE_AFTER_BACKUP, v)
+    fun isTitleStartsWithDate(context: Context): Boolean = prefBool(context, KEY_TITLE_STARTS_WITH_DATE)
+    fun setTitleStartsWithDate(context: Context, v: Boolean) = setPrefBool(context, KEY_TITLE_STARTS_WITH_DATE, v)
+
+    fun isHideRecordingControls(context: Context): Boolean = prefBool(context, KEY_HIDE_RECORDING_CONTROLS)
+    fun setHideRecordingControls(context: Context, v: Boolean) = setPrefBool(context, KEY_HIDE_RECORDING_CONTROLS, v)
+    fun getDarkThemeMode(context: Context): String =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getString(KEY_DARK_THEME, "auto") ?: "auto"
+    fun setDarkThemeMode(context: Context, mode: String) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putString(KEY_DARK_THEME, mode).apply()
+    }
+    fun isPostCallActionsEnabled(context: Context): Boolean = prefBool(context, KEY_POST_CALL_ACTIONS)
+    fun setPostCallActionsEnabled(context: Context, v: Boolean) = setPrefBool(context, KEY_POST_CALL_ACTIONS, v)
+    fun isShakeToMarkEnabled(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean(KEY_SHAKE_TO_MARK, true)
+    fun setShakeToMarkEnabled(context: Context, v: Boolean) = setPrefBool(context, KEY_SHAKE_TO_MARK, v)
+    fun getShakeThreshold(context: Context): Int =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY_SHAKE_THRESHOLD, 30)
+            .coerceIn(0, 100)
+    fun setShakeThreshold(context: Context, v: Int) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putInt(KEY_SHAKE_THRESHOLD, v.coerceIn(0, 100)).apply()
+    }
+    fun isShakeVibrationEnabled(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean(KEY_SHAKE_VIBRATION, true)
+    fun setShakeVibrationEnabled(context: Context, v: Boolean) = setPrefBool(context, KEY_SHAKE_VIBRATION, v)
+    fun isGeoTaggingEnabled(context: Context): Boolean = prefBool(context, KEY_GEO_TAGGING)
+    fun setGeoTaggingEnabled(context: Context, v: Boolean) = setPrefBool(context, KEY_GEO_TAGGING, v)
+
+    private fun prefBool(context: Context, key: String): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(key, false)
+
+    private fun setPrefBool(context: Context, key: String, value: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(key, value).apply()
     }
 
     fun setAcrStyleRecording(context: Context, enabled: Boolean) {

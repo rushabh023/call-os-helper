@@ -59,6 +59,7 @@ fun HelperDashboardScreen(
     showSetupCompleteDialog: Boolean,
     onDismissSetupDialog: () -> Unit,
     onRequestDualCapture: () -> Unit = {},
+    showHeader: Boolean = true,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -141,7 +142,9 @@ fun HelperDashboardScreen(
             .background(CubeDashboardBackground)
             .windowInsetsPadding(WindowInsets.safeDrawing)
     ) {
-        CubePurpleHeader(stringResource(R.string.dashboard_title))
+        if (showHeader) {
+            CubePurpleHeader(stringResource(R.string.dashboard_title))
+        }
 
         Column(
             modifier = Modifier

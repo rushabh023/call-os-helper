@@ -48,18 +48,36 @@ object RecordingAudioSources {
         add(Candidate(MediaRecorder.AudioSource.DEFAULT, "DEFAULT"))
     }
 
-    fun captureOrderFor(context: Context, shizukuBlockedProfile: Boolean = false): List<Candidate> {
+    fun captureOrderFor(
+        context: Context,
+        shizukuBlockedProfile: Boolean = false,
+        voip: Boolean = false
+    ): List<Candidate> {
         val cubeOrBlocked = shizukuBlockedProfile || RecordingPreferences.isCubeCompatibilityMode(context)
         val acr = RecordingPreferences.isAcrStyleRecording(context)
         val speakerBoost = RecordingPreferences.isSpeakerBoostEnabled(context)
         val phoneSpeakerOn = CallAudioBoost.isSpeakerphoneActive(context)
-        // Shizuku access OK but shell recorder not up yet: VOICE_CALL in app UID → valid file, no audio (Android 10+).
         val shizukuPending = ShizukuManager.isPrivilegedServicePending()
-        return when {
+        val preferredId = if (voip) {
+            RecordingPreferences.getVoipAudioSourceId(context)
+        } else {
+            RecordingPreferences.getPhoneAudioSourceId(context)
+        }
+        val baseOrder = when {
             (cubeOrBlocked || acr || shizukuPending) && speakerBoost && phoneSpeakerOn -> acrMicSpeakerOrder
             shizukuBlockedProfile || cubeOrBlocked || acr || shizukuPending -> acrAccessibilityOrder
             else -> privilegedCaptureOrder
         }
+        return CubeAudioSourceOptions.orderedCandidates(preferredId, baseOrder)
+    }
+
+    fun preferSoftwareContext(context: Context, voip: Boolean = false): Boolean {
+        val id = if (voip) {
+            RecordingPreferences.getVoipAudioSourceId(context)
+        } else {
+            RecordingPreferences.getPhoneAudioSourceId(context)
+        }
+        return CubeAudioSourceOptions.preferSoftwareContext(id)
     }
 
     /** Full ladder including VOICE_CALL (for Shizuku / root-style engines). */

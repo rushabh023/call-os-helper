@@ -125,6 +125,11 @@ class CallStateMonitor(private val context: Context) {
             }
             TelephonyManager.CALL_STATE_OFFHOOK -> {
                 if (lastState != TelephonyManager.CALL_STATE_OFFHOOK) {
+                    if (!RecordingPreferences.isRecordCellularEnabled(context)) {
+                        AppLog.Telephony.i("OFFHOOK ignored — cellular recording disabled in settings")
+                        lastState = state
+                        return
+                    }
                     val direction = if (ringDetected) {
                         CallDirection.INCOMING
                     } else {

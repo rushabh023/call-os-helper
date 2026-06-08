@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/dialpadFragment">
+
+    <fragment
+        android:id="@+id/dialpadFragment"
+        android:name="com.example.helper_application.dialer.feature.dialpad.DialpadFragment"
+        android:label="@string/tab_dialpad" />
+
+    <fragment
+        android:id="@+id/callLogFragment"
+        android:name="com.example.helper_application.dialer.feature.calllog.CallLogFragment"
+        android:label="@string/tab_recents" />
+
+    <fragment
+        android:id="@+id/contactsFragment"
+        android:name="com.example.helper_application.dialer.feature.contacts.ContactsFragment"
+        android:label="@string/tab_contacts" />
+
+    <fragment
+        android:id="@+id/recordingsFragment"
+        android:name="com.example.helper_application.dialer.feature.recordings.RecordingsFragment"
+        android:label="@string/tab_recordings" />
+
+    <include app:graph="@navigation/more_nav" />
+</navigation>

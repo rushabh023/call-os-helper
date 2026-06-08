@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="screen_padding">20dp</dimen>
+    <dimen name="screen_padding_sm">16dp</dimen>
+    <dimen name="list_item_padding_h">20dp</dimen>
+    <dimen name="list_item_padding_v">14dp</dimen>
+    <dimen name="avatar_size">48dp</dimen>
+    <dimen name="avatar_size_sm">40dp</dimen>
+    <dimen name="dial_key_size">76dp</dimen>
+    <dimen name="dial_key_margin">6dp</dimen>
+    <dimen name="dial_fab_size">64dp</dimen>
+    <dimen name="bottom_nav_elevation">8dp</dimen>
+    <dimen name="card_corner">16dp</dimen>
+    <dimen name="incall_action_size">64dp</dimen>
+</resources>

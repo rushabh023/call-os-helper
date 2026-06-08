@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/more_nav"
+    app:startDestination="@id/moreFragment">
+
+    <fragment
+        android:id="@+id/moreFragment"
+        android:name="com.example.helper_application.dialer.feature.more.MoreFragment"
+        android:label="@string/tab_more">
+        <action
+            android:id="@+id/action_moreFragment_to_helperHostFragment"
+            app:destination="@id/helperHostFragment" />
+        <action
+            android:id="@+id/action_moreFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/helperHostFragment"
+        android:name="com.example.helper_application.dialer.feature.helper.HelperHostFragment"
+        android:label="@string/tab_helper" />
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.helper_application.dialer.feature.settings.SettingsFragment"
+        android:label="@string/tab_settings">
+        <action
+            android:id="@+id/action_settingsFragment_to_speedDialFragment"
+            app:destination="@id/speedDialFragment" />
+        <action
+            android:id="@+id/action_settingsFragment_to_blocklistFragment"
+            app:destination="@id/blocklistFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/speedDialFragment"
+        android:name="com.example.helper_application.dialer.feature.settings.SpeedDialFragment"
+        android:label="@string/speed_dial_title" />
+
+    <fragment
+        android:id="@+id/blocklistFragment"
+        android:name="com.example.helper_application.dialer.feature.settings.BlocklistFragment"
+        android:label="@string/blocklist_title" />
+</navigation>

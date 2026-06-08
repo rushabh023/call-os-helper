@@ -76,8 +76,13 @@ class MediaRecorderEngine(private val context: Context) : RecorderEngine {
     }
 
     private fun tryStartWithSource(file: File, candidate: RecordingAudioSources.Candidate): Boolean {
-        val recordContext = AppConnectorHolder.recordingContext(context)
-        val viaAccessibility = AppConnectorHolder.service != null
+        val preferSoftware = RecordingAudioSources.preferSoftwareContext(context)
+        val recordContext = if (preferSoftware) {
+            AppConnectorHolder.recordingContext(context)
+        } else {
+            context
+        }
+        val viaAccessibility = preferSoftware && AppConnectorHolder.service != null
         return tryStartWithSourceOnContext(file, candidate, recordContext, viaAccessibility) ||
             (viaAccessibility && tryStartWithSourceOnContext(file, candidate, context, false))
     }

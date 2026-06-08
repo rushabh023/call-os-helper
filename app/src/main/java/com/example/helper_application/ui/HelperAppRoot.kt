@@ -16,7 +16,7 @@ import com.example.helper_application.util.AppLog
 import com.example.helper_application.setup.PermissionHelper
 import com.example.helper_application.setup.SetupPreferences
 import com.example.helper_application.setup.SystemSettingsHelper
-import com.example.helper_application.ui.dashboard.HelperDashboardScreen
+import com.example.helper_application.ui.navigation.HelperDrawerShell
 import com.example.helper_application.ui.setup.AppConnectorScreen
 import com.example.helper_application.ui.setup.BatteryOptimizationScreen
 import com.example.helper_application.ui.setup.PermissionsScreen
@@ -121,7 +121,7 @@ fun HelperAppRoot(
                 }
             }
         )
-        SetupStep.Dashboard -> HelperDashboardScreen(
+        SetupStep.Dashboard -> HelperDrawerShell(
             showSetupCompleteDialog = showCompleteDialog,
             onDismissSetupDialog = {
                 showCompleteDialog = false

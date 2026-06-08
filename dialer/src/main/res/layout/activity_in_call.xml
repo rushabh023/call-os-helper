@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/callerName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textAppearance="?attr/textAppearanceHeadlineMedium" />
+
+        <TextView
+            android:id="@+id/callerNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+        <TextView
+            android:id="@+id/callState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingTop="8dp" />
+
+        <View
+            android:id="@+id/recordingDot"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_recording_dot"
+            android:visibility="gone" />
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:columnCount="3">
+
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnMute" style="@style/Widget.Dialer.InCall" android:text="@string/mute" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSpeaker" style="@style/Widget.Dialer.InCall" android:text="@string/speaker" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnHold" style="@style/Widget.Dialer.InCall" android:text="@string/hold" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnKeypad" style="@style/Widget.Dialer.InCall" android:text="@string/keypad" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnRecord" style="@style/Widget.Dialer.InCall" android:text="@string/record" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnEndCall" style="@style/Widget.Dialer.InCall" android:text="@string/end_call" />
+        </GridLayout>
+
+        <LinearLayout
+            android:id="@+id/dtmfPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCloseDtmf"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/close" />
+
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="3">
+
+                <Button android:id="@+id/dtmf1" android:text="1" />
+                <Button android:id="@+id/dtmf2" android:text="2" />
+                <Button android:id="@+id/dtmf3" android:text="3" />
+                <Button android:id="@+id/dtmf4" android:text="4" />
+                <Button android:id="@+id/dtmf5" android:text="5" />
+                <Button android:id="@+id/dtmf6" android:text="6" />
+                <Button android:id="@+id/dtmf7" android:text="7" />
+                <Button android:id="@+id/dtmf8" android:text="8" />
+                <Button android:id="@+id/dtmf9" android:text="9" />
+                <Button android:id="@+id/dtmfStar" android:text="*" />
+                <Button android:id="@+id/dtmf0" android:text="0" />
+                <Button android:id="@+id/dtmfHash" android:text="#" />
+            </GridLayout>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

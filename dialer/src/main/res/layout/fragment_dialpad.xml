@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/numberField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:minHeight="48dp"
+        android:textAppearance="?attr/textAppearanceHeadlineMedium" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/matchList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="3"
+        android:rowCount="4">
+
+        <com.google.android.material.button.MaterialButton android:id="@+id/key1" style="@style/Widget.Dialer.Key" android:text="1" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/key2" style="@style/Widget.Dialer.Key" android:text="2\nABC" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/key3" style="@style/Widget.Dialer.Key" android:text="3\nDEF" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/key4" style="@style/Widget.Dialer.Key" android:text="4\nGHI" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/key5" style="@style/Widget.Dialer.Key" android:text="5\nJKL" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/key6" style="@style/Widget.Dialer.Key" android:text="6\nMNO" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/key7" style="@style/Widget.Dialer.Key" android:text="7\nPQRS" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/key8" style="@style/Widget.Dialer.Key" android:text="8\nTUV" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/key9" style="@style/Widget.Dialer.Key" android:text="9\nWXYZ" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/keyStar" style="@style/Widget.Dialer.Key" android:text="*" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/key0" style="@style/Widget.Dialer.Key" android:text="0\n+" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/keyHash" style="@style/Widget.Dialer.Key" android:text="#" />
+    </GridLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddContact"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/add_contact" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnCall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:contentDescription="@string/call"
+            android:src="@android:drawable/ic_menu_call" />
+
+        <ImageButton
+            android:id="@+id/btnBackspace"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/backspace"
+            android:src="@android:drawable/ic_input_delete" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_incall_gradient">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="48dp"
+            android:paddingBottom="32dp">
+
+            <TextView
+                android:id="@+id/callerAvatar"
+                android:layout_width="88dp"
+                android:layout_height="88dp"
+                android:background="@drawable/bg_avatar_placeholder"
+                android:gravity="center"
+                android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium"
+                android:textColor="@color/white" />
+
+            <TextView
+                android:id="@+id/callerName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="2"
+                android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                android:textColor="@color/white" />
+
+            <TextView
+                android:id="@+id/callerNumber"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="#B3C5E8" />
+
+            <TextView
+                android:id="@+id/callDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.06"
+                android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                android:textColor="@color/white"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <View
+                    android:id="@+id/recordingDot"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/bg_recording_dot"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/callState"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="#D6E4FF" />
+            </LinearLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="36dp"
+                android:paddingHorizontal="4dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnMute"
+                    style="@style/Widget.Dialer.InCall.Action"
+                    android:layout_width="@dimen/incall_action_size"
+                    android:layout_height="@dimen/incall_action_size"
+                    android:text="@string/mute"
+                    app:layout_constraintEnd_toStartOf="@+id/btnSpeaker"
+                    app:layout_constraintHorizontal_chainStyle="spread"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSpeaker"
+                    style="@style/Widget.Dialer.InCall.Action"
+                    android:layout_width="@dimen/incall_action_size"
+                    android:layout_height="@dimen/incall_action_size"
+                    android:text="@string/speaker"
+                    app:layout_constraintEnd_toStartOf="@+id/btnHold"
+                    app:layout_constraintStart_toEndOf="@+id/btnMute"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnHold"
+                    style="@style/Widget.Dialer.InCall.Action"
+                    android:layout_width="@dimen/incall_action_size"
+                    android:layout_height="@dimen/incall_action_size"
+                    android:text="@string/hold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/btnSpeaker"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnKeypad"
+                    style="@style/Widget.Dialer.InCall.Action"
+                    android:layout_width="@dimen/incall_action_size"
+                    android:layout_height="@dimen/incall_action_size"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/keypad"
+                    app:layout_constraintEnd_toStartOf="@+id/btnRecord"
+                    app:layout_constraintHorizontal_chainStyle="spread"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/btnMute" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRecord"
+                    style="@style/Widget.Dialer.InCall.Action"
+                    android:layout_width="@dimen/incall_action_size"
+                    android:layout_height="@dimen/incall_action_size"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/record"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/btnKeypad"
+                    app:layout_constraintTop_toBottomOf="@+id/btnMute" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEndCall"
+                style="@style/Widget.Dialer.InCall.EndCall"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_marginTop="32dp"
+                android:contentDescription="@string/end_call" />
+
+            <LinearLayout
+                android:id="@+id/dtmfPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:background="#22FFFFFF"
+                android:orientation="vertical"
+                android:padding="12dp"
+                android:visibility="gone">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCloseDtmf"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:text="@string/close"
+                    android:textColor="@color/white" />
+
+                <GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:columnCount="3">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/dtmf1"
+                        style="@style/Widget.Dialer.Key"
+                        android:text="1" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/dtmf2"
+                        style="@style/Widget.Dialer.Key"
+                        android:text="2" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/dtmf3"
+                        style="@style/Widget.Dialer.Key"
+                        android:text="3" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/dtmf4"
+                        style="@style/Widget.Dialer.Key"
+                        android:text="4" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/dtmf5"
+                        style="@style/Widget.Dialer.Key"
+                        android:text="5" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/dtmf6"
+                        style="@style/Widget.Dialer.Key"
+                        android:text="6" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/dtmf7"
+                        style="@style/Widget.Dialer.Key"
+                        android:text="7" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/dtmf8"
+                        style="@style/Widget.Dialer.Key"
+                        android:text="8" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/dtmf9"
+                        style="@style/Widget.Dialer.Key"
+                        android:text="9" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/dtmfStar"
+                        style="@style/Widget.Dialer.Key"
+                        android:text="*" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/dtmf0"
+                        style="@style/Widget.Dialer.Key"
+                        android:text="0" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/dtmfHash"
+                        style="@style/Widget.Dialer.Key"
+                        android:text="#" />
+                </GridLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

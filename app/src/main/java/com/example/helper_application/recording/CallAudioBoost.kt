@@ -65,11 +65,17 @@ object CallAudioBoost {
             "bluetoothHeadset" to routeSnapshot.bluetoothHeadset
         )
 
-        if (!routeSnapshot.blocksLikelyOtherSide) {
+        val forceInCommunication = RecordingPreferences.isForceInCommunicationMode(app)
+        if (!routeSnapshot.blocksLikelyOtherSide && forceInCommunication) {
             // Cube FAQ: in-communication mode — only when not on headset.
             @Suppress("DEPRECATION")
             runCatching {
                 audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+            }
+        } else if (!routeSnapshot.blocksLikelyOtherSide && !forceInCommunication) {
+            @Suppress("DEPRECATION")
+            runCatching {
+                audioManager.mode = AudioManager.MODE_IN_CALL
             }
         }
 
@@ -80,7 +86,9 @@ object CallAudioBoost {
             routeToSpeaker(audioManager)
             @Suppress("DEPRECATION")
             runCatching { audioManager.isSpeakerphoneOn = true }
-            boostVoiceCallVolume(audioManager)
+            if (RecordingPreferences.isMaximizeInCallVolume(app)) {
+                boostVoiceCallVolume(audioManager)
+            }
             AppLog.Engine.i("ACR-style: speakerphone ON (force=$force)")
         }
 

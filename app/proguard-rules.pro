@@ -1,5 +1,8 @@
 # Add project specific ProGuard rules here.
 
+# Dialer InCallService
+-keep class com.example.helper_application.dialer.feature.incall.MyInCallService { *; }
+
 # Shizuku UserService (must keep class name for bindUserService)
 -keep class com.example.helper_application.shizuku.ShizukuRecordingUserService { *; }
 -keepclassmembers class com.example.helper_application.shizuku.ShizukuRecordingUserService {

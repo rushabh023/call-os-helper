@@ -18,7 +18,7 @@ import android.telephony.TelephonyManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
-import com.example.helper_application.MainActivity
+import com.example.helper_application.dialer.DialerShellActivity
 import com.example.helper_application.R
 import android.util.Log
 import com.example.helper_application.bridge.MesValidationConnectionBridge
@@ -153,6 +153,16 @@ class CallMonitorService : Service() {
                 )
                 promoteToForeground(NOTIFICATION_RECORDING, "Recording call…")
                 callRouteSnapshot = CallRouteDiagnostics.snapshot(this@CallMonitorService)
+                if (RecordingPreferences.isSkipHeadsetCalls(this@CallMonitorService) &&
+                    callRouteSnapshot?.blocksLikelyOtherSide == true
+                ) {
+                    AppLog.Recording.i("Recording skipped: headset connected (skip headset calls ON)")
+                    RecordingPreferences.setLastError(
+                        this@CallMonitorService,
+                        "Headset call skipped — disable \"Skip headset calls\" or unplug headset to record."
+                    )
+                    return@post
+                }
                 val forceAudioRoute = shouldForceAudioRouteBoost()
                 RecordingPreferences.setLastCallHeadsetConnected(
                     this@CallMonitorService,
@@ -565,7 +575,7 @@ class CallMonitorService : Service() {
         val openApp = PendingIntent.getActivity(
             this,
             0,
-            Intent(this, MainActivity::class.java),
+            Intent(this, DialerShellActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)

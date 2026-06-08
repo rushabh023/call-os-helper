@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Dialer" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/dialer_primary</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+    </style>
+
+    <style name="Theme.Dialer.InCall" parent="Theme.Dialer">
+        <item name="android:windowShowWallpaper">false</item>
+    </style>
+
+    <style name="Widget.Dialer.Key" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">72dp</item>
+        <item name="android:layout_columnWeight">1</item>
+        <item name="android:layout_margin">4dp</item>
+    </style>
+
+    <style name="Widget.Dialer.InCall" parent="Widget.Material3.Button.TonalButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_columnWeight">1</item>
+        <item name="android:layout_margin">4dp</item>
+    </style>
+</resources>

@@ -160,10 +160,14 @@ fun CubeDashboardGrayButton(
 @Composable
 fun AppLogo(
     modifier: Modifier = Modifier,
-    size: Dp = 72.dp
+    size: Dp = 72.dp,
+    /** On purple headers use foreground-only; setup screens use full logo with gradient. */
+    foregroundOnly: Boolean = false
 ) {
     Image(
-        painter = painterResource(R.drawable.ic_app_logo),
+        painter = painterResource(
+            if (foregroundOnly) R.drawable.ic_launcher_foreground else R.drawable.ic_app_logo
+        ),
         contentDescription = null,
         modifier = modifier.size(size)
     )
@@ -182,7 +186,7 @@ fun CubePurpleHeader(title: String) {
             .padding(horizontal = 20.dp, vertical = 14.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            AppLogo(size = 40.dp)
+            AppLogo(size = 40.dp, foregroundOnly = true)
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = title,

@@ -9,7 +9,7 @@ import com.example.helper_application.setup.SystemSettingsHelper
 import com.example.helper_application.util.AppLog
 
 /**
- * Process-wide telephony listener. Must survive [MainActivity] destruction (e.g. user answers a call).
+ * Process-wide telephony listener. Must survive [DialerShellActivity] destruction (e.g. user answers a call).
  */
 object CallMonitoringCoordinator {
 
@@ -37,7 +37,6 @@ object CallMonitoringCoordinator {
             return
         }
         AppLog.Telephony.i("Starting call monitor + telephony listener")
-        RecordingPreferences.setAutoRecordEnabled(app, true)
         CallMonitorService.startMonitoring(app)
         startTelephonyListener(app)
     }
